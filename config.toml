@@ -1,0 +1,19 @@
+[explorer]
+model = "o3-mini"
+provider = "openai"
+
+[analyzer]
+model = "o3-mini"
+provider = "openai"
+
+[planner]
+model = "meta-llama/llama-4-maverick:free"
+provider = "openrouter"
+
+[executor]
+model = "o3-mini"
+provider = "openai"
+
+[aggregator]
+model = "gemma3:12b"
+provider = "ollama"
