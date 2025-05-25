@@ -44,6 +44,7 @@ def planner_node(state: State, **kwargs):
     llm = kwargs['llm']
     data_dir = kwargs['data_dir']
     tree = utils.get_data_paths_bash_tree(data_dir)
+    df_heads = kwargs['df_heads']
     
     system_prompt = SystemMessage(
         content=sys_prompt,
@@ -77,9 +78,16 @@ if __name__ == "__main__":
     llms = get_llms(llm_config)
     prompts = config.load_prompts()
     data_dir = config.SELECTED_DATA_DIR
+    df_heads = utils.get_df_heads(data_dir)
 
     # complete node definitions
-    planner_node = partial(planner_node, llm=llms['planner_llm'], sys_prompt=prompts['planner_prompt'], data_dir=data_dir)
+    planner_node = partial(planner_node, 
+                           llm=llms['planner_llm'], 
+                           sys_prompt=prompts['planner_prompt'], 
+                           data_dir=data_dir,
+                           df_heads=df_heads)
+    
+    # build graph
     graph_init = StateGraph(state_schema=State)
     graph_init.add_node(
         "planner", 
@@ -101,5 +109,6 @@ if __name__ == "__main__":
         "results": None
     }
     
+    # invoke graph
     graph.invoke(input)
     print(0)
