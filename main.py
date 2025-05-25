@@ -49,6 +49,8 @@ def planner_node(state: State, **kwargs):
         data_dir=data_dir,
     )
     
+    print("Planner System prompt:", system_prompt.pretty_repr())
+    
     # create the ReAct agent
     agent = create_react_agent(
         model=llm,
@@ -57,9 +59,12 @@ def planner_node(state: State, **kwargs):
         response_format=Plan
     )
     
-    response = agent.invoke(state['query'])
+    agent_input = {"messages": [{"role": "user", "content": state['query']}]}
+    response = agent.invoke(agent_input)
     plan = response["structured_response"]
     state['plan'] = plan
+    
+    plan.pretty_print()
     
     
 
@@ -70,11 +75,15 @@ if __name__ == "__main__":
     llm_config = config.load_llm_config()
     llms = get_llms(llm_config)
     prompts = config.load_prompts()
+    data_dir = config.SELECTED_DATA_DIR
 
     # complete node definitions
-    planner_node = partial(planner_node, llm=llms['planner_llm'], sys_prompt=prompts['planner_prompt'])
+    planner_node = partial(planner_node, llm=llms['planner_llm'], sys_prompt=prompts['planner_prompt'], data_dir=data_dir)
     graph_init = StateGraph(state_schema=State)
     graph_init.add_node("planner", planner_node)
+    graph_init.add_edge(START, "planner")
+    
+    graph = graph_init.compile()
     
     # get user query
     user_query = "What is langchain?"
@@ -83,4 +92,6 @@ if __name__ == "__main__":
         "plan": None,
         "results": None
     }
+    
+    graph.invoke(input)
     print(0)
