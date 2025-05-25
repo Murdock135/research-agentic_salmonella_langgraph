@@ -1,3 +1,7 @@
+[router]
+model = "gemma3:12b"
+provider = "ollama"
+
 [explorer]
 model = "o3-mini"
 provider = "openai"

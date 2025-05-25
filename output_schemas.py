@@ -32,3 +32,8 @@ class Plan(BaseModel):
         print(self.wants)
         print("Misc:")
         print(self.misc)
+        
+class Router(BaseModel):
+    """Output of the router node"""
+    route: bool = Field(..., description="Whether the query requires further planning (True) or can be answered directly (False)")
+    answer: str | None = Field(..., description="The answer to the query if it can be answered directly")
