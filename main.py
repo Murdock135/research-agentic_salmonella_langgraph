@@ -9,6 +9,8 @@ from functools import partial
 from langgraph.prebuilt import create_react_agent
 from langgraph.graph import MessagesState, StateGraph, START, END
 from langchain_core.messages import SystemMessage
+from langgraph.types import RetryPolicy
+import pydantic_core
 
 def get_llms(llm_config: dict):
     explorer_config = llm_config['explorer']
@@ -48,9 +50,7 @@ def planner_node(state: State, **kwargs):
         tree=tree,
         data_dir=data_dir,
     )
-    
-    print("Planner System prompt:", system_prompt.pretty_repr())
-    
+        
     # create the ReAct agent
     agent = create_react_agent(
         model=llm,
@@ -61,6 +61,7 @@ def planner_node(state: State, **kwargs):
     
     agent_input = {"messages": [{"role": "user", "content": state['query']}]}
     response = agent.invoke(agent_input)
+            
     plan = response["structured_response"]
     state['plan'] = plan
     
@@ -80,7 +81,14 @@ if __name__ == "__main__":
     # complete node definitions
     planner_node = partial(planner_node, llm=llms['planner_llm'], sys_prompt=prompts['planner_prompt'], data_dir=data_dir)
     graph_init = StateGraph(state_schema=State)
-    graph_init.add_node("planner", planner_node)
+    graph_init.add_node(
+        "planner", 
+        planner_node,
+        retry=RetryPolicy(
+            max_attempts=5,
+            retry_on=pydantic_core._pydantic_core.ValidationError
+            )
+        )
     graph_init.add_edge(START, "planner")
     
     graph = graph_init.compile()
