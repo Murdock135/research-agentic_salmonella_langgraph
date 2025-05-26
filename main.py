@@ -33,8 +33,16 @@ def get_llms(llm_config: dict):
     
 class State(TypedDict):
     query: str
+    route: bool | None
+    answer: str | None
     plan: Plan | None
     results: MessagesState | None
+    
+def router_func(router_output):
+    """
+    Function to determine the route of the query
+    """
+    return router_output['route']
     
 def router_node(state: State, **kwargs):
     """
@@ -65,7 +73,15 @@ def router_node(state: State, **kwargs):
     agent_input = {"messages": [{"role": "user", "content": state['query']}]}
     response = agent.invoke(agent_input)
     
-    return response["structured_response"]
+    output =  {
+        'route': response["structured_response"].route,
+        'answer': response["structured_response"].answer,
+    }
+    
+    if output['route'] is False:
+        print(output['answer'])
+    
+    return output
     
 def planner_node(state: State, **kwargs):
     """
@@ -96,9 +112,7 @@ def planner_node(state: State, **kwargs):
     response = agent.invoke(agent_input)
             
     plan = response["structured_response"]
-    state['plan'] = plan
-    
-    plan.pretty_print()
+    return { 'plan': plan}
     
     # May need to return a State-like dict
 
@@ -128,6 +142,7 @@ if __name__ == "__main__":
     
     # build graph
     graph_init = StateGraph(state_schema=State)
+    graph_init.add_node("router", router_node)
     graph_init.add_node(
         "planner", 
         planner_node,
@@ -136,7 +151,8 @@ if __name__ == "__main__":
             retry_on=pydantic_core._pydantic_core.ValidationError
             )
         )
-    graph_init.add_edge(START, "planner")
+    graph_init.add_edge(START, "router")
+    graph_init.add_conditional_edges("router", router_func, {True: "planner", False: END})
     
     graph = graph_init.compile()
     
@@ -144,10 +160,7 @@ if __name__ == "__main__":
     user_query = "What is langchain?"
     input = {
         "query": user_query,
-        "plan": None,
-        "results": None
     }
     
     # invoke graph
     graph.invoke(input)
-    print(0)
