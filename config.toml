@@ -1,5 +1,7 @@
+test_query = "What are the main factors contributing to salmonella rates in Missouri in a statistical sense?"
+
 [router]
-model = "gemma3:12b"
+model = "gemma3:12b-it-qat"
 provider = "ollama"
 
 [explorer]
@@ -11,8 +13,8 @@ model = "o3-mini"
 provider = "openai"
 
 [planner]
-model = "meta-llama/llama-4-maverick:free"
-provider = "openrouter"
+model = "o3-mini-2025-01-31"
+provider = "openai"
 
 [executor]
 model = "o3-mini"
@@ -21,3 +23,4 @@ provider = "openai"
 [aggregator]
 model = "gemma3:12b"
 provider = "ollama"
+

@@ -17,6 +17,7 @@ class Config:
         
         # Path to system messages
         self.PROMPT_DIR = os.path.join(self.BASE_DIR, 'sys_messages')
+        self.ROUTER_PROMPT_PATH = os.path.join(self.PROMPT_DIR, 'router_message.txt')
         self.PLANNER_PROMPT_PATH = os.path.join(self.PROMPT_DIR, 'planner_message.txt')
         self.EXPLORER_PROMPT_PATH = os.path.join(self.PROMPT_DIR, 'explorer_message.txt')
         self.ANALYZER_PROMPT_PATH = os.path.join(self.PROMPT_DIR, 'analyzer_message.txt')
@@ -84,6 +85,7 @@ class Config:
     
     def load_prompts(self):
         return {
+            'router_prompt': load_text(self.ROUTER_PROMPT_PATH),
             'planner_prompt': load_text(self.PLANNER_PROMPT_PATH),
             'explorer_prompt': load_text(self.EXPLORER_PROMPT_PATH),
             'analyzer_prompt': load_text(self.ANALYZER_PROMPT_PATH),

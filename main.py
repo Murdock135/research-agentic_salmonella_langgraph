@@ -5,10 +5,12 @@ from output_schemas import Plan, Router
 
 from typing import TypedDict
 from functools import partial
+import argparse
 
 from langgraph.prebuilt import create_react_agent
 from langgraph.graph import MessagesState, StateGraph, START, END
 from langchain_core.messages import SystemMessage
+from langchain_core.prompts import PromptTemplate
 from langgraph.types import RetryPolicy
 import pydantic_core
 
@@ -49,19 +51,7 @@ def router_node(state: State, **kwargs):
     Route the user query to the appropriate node based on the type of query
     """
     llm = kwargs['llm']
-    prompt = """"You are a 'router'. You will receive the user's message and decide whether it requires further planning to answer, in which case you will say 'True'
-    "or if it can be answered directly, in which case you will say 'False'. If you say 'False', you will also provide the answer to the user's question.
-    
-    Your output should simply be either 'True' or 'False'. And if it's 'False', then 'answer': <answer>
-    
-    Examples
-    (1) User: What is langchain?
-    Router: False
-    answer: <your answer here>
-    
-    (2) User: What is the average age of the people in the dataset?
-    Router: True
-    """
+    prompt = kwargs['prompt']
     
     agent = create_react_agent(
         model=llm,
@@ -69,7 +59,6 @@ def router_node(state: State, **kwargs):
         prompt=SystemMessage(content=prompt),
         response_format=Router
     )
-    
     agent_input = {"messages": [{"role": "user", "content": state['query']}]}
     response = agent.invoke(agent_input)
     
@@ -77,9 +66,8 @@ def router_node(state: State, **kwargs):
         'route': response["structured_response"].route,
         'answer': response["structured_response"].answer,
     }
-    
-    if output['route'] is False:
-        print(output['answer'])
+    # if output['route'] is False:
+    #     print(output['answer'])
     
     return output
     
@@ -93,13 +81,15 @@ def planner_node(state: State, **kwargs):
     data_dir = kwargs['data_dir']
     tree = utils.get_data_paths_bash_tree(data_dir)
     df_heads = kwargs['df_heads']
-    
-    system_prompt = SystemMessage(
-        content=sys_prompt,
-        tree=tree,
-        data_dir=data_dir,
+
+    system_prompt = PromptTemplate.from_template(sys_prompt).partial(
+        tree = tree,
+        df_heads = df_heads
     )
-        
+    breakpoint()
+    system_prompt = SystemMessage(content=system_prompt)
+    
+
     # create the ReAct agent
     agent = create_react_agent(
         model=llm,
@@ -122,7 +112,14 @@ def executor_node(state: State, **kwargs):
     """
     pass
 
+def main():
+    pass
+
 if __name__ == "__main__":
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="Run the LangGraph application.")
+    parser.add_argument('-t', '--test', action='store_true', help="Run in test mode with a predefined query.")
+    args = parser.parse_args()
 
     # Initialize the configuration
     config = Config()
@@ -133,7 +130,7 @@ if __name__ == "__main__":
     df_heads = utils.get_df_heads(data_dir)
 
     # complete node definitions
-    router_node = partial(router_node, llm=llms['router_llm'])
+    router_node = partial(router_node, llm=llms['router_llm'], prompt=prompts['router_prompt'])
     planner_node = partial(planner_node, 
                            llm=llms['planner_llm'], 
                            sys_prompt=prompts['planner_prompt'], 
@@ -157,10 +154,17 @@ if __name__ == "__main__":
     graph = graph_init.compile()
     
     # get user query
-    user_query = "What is langchain?"
+    user_query = utils.get_user_query(args=args, config=llm_config)
     input = {
         "query": user_query,
     }
-    
+
     # invoke graph
-    graph.invoke(input)
+    result = graph.invoke(input)
+    print("=" * 50)
+    print("Output:")
+    print(result)
+
+    print("="*50)
+    print("Plan")
+    print(result['plan'])

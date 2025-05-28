@@ -136,9 +136,15 @@ def get_llm(model='gpt-4o', provider='openai'):
         raise ValueError(f"Provider '{provider} not supported. Please choose 'openai', 'openrouter', or 'ollama'.")
         
         
-def get_user_query(args=None):
+def get_user_query(args=None, config=None):
     if args is not None and args.test:
-        user_query = "What is the correlation between social vulnerability and salmonella rates in recent years?"
+        if config is None:
+            user_query = "What are the main factors contributing to salmonella rates in Missouri in a statistical sense?"
+        else:
+            user_query = config.get('test_query')
+            if user_query is None:
+                raise ValueError("Test query not found in config.")
+            
         print("Using test query: ", user_query)
     else:
         user_query = input("Enter your query:\n")
@@ -170,3 +176,8 @@ if __name__ == "__main__":
     df = load_dataset(mmg_data_path, sheet_name='County')
     print(df.head().to_markdown())
     print("Data loaded successfully.")
+
+    # Test get_data_paths_bash_tree
+    tree_output = get_data_paths_bash_tree(config.SELECTED_DATA_DIR)
+    print("Data paths tree:")
+    print(tree_output)
