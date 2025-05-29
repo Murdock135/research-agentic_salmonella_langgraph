@@ -130,11 +130,41 @@ def get_llm(model='gpt-4o', provider='openai'):
     
     elif provider == 'ollama':
         from langchain_ollama import ChatOllama
-        return ChatOllama(model=model)
+        from ollama import ResponseError
+        
+        try:
+            llm = ChatOllama(model=model)
+            return llm
+        except ResponseError as e:
+            choice = input(f"Model {model} not found. Do you want to pull it? (y/n): ")
+            if choice.lower() == 'y':
+                pull_ollama_model(model)
+                return ChatOllama(model=model)
+            else:
+                raise ValueError(f"Model {model} not found and not pulled.")
     
     else:
         raise ValueError(f"Provider '{provider} not supported. Please choose 'openai', 'openrouter', or 'ollama'.")
-        
+
+
+def pull_ollama_model(model_name: str) -> None:
+    import subprocess
+    from config import Config
+    import os
+    
+    config = Config()
+    project_dir = config.BASE_DIR
+    download_script = os.path.join(project_dir, 'utils', 'dl_ollama_model.sh')
+    if not os.path.exists(download_script):
+        raise FileNotFoundError(f"Download script not found at {download_script}. Please check the path.")
+
+    result = subprocess.run([download_script, model_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    print("STDOUT:\n", result.stdout)
+    if result.returncode != 0:
+        print("Error:\n", result.stderr)
+    else:
+        print(f"Model {model_name} pulled successfully.")
+    
         
 def get_user_query(args=None, config=None):
     if args is not None and args.test:

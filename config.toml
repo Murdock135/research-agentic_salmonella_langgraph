@@ -1,8 +1,8 @@
 test_query = "What are the main factors contributing to salmonella rates in Missouri in a statistical sense?"
 
 [router]
-model = "gemma3:12b-it-qat"
-provider = "ollama"
+model = "o3-mini"
+provider = "openai"
 
 [explorer]
 model = "o3-mini"
@@ -21,6 +21,6 @@ model = "o3-mini"
 provider = "openai"
 
 [aggregator]
-model = "gemma3:12b"
-provider = "ollama"
+model = "o3-mini"
+provider = "openai"
 

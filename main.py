@@ -10,7 +10,8 @@ import argparse
 from langgraph.prebuilt import create_react_agent
 from langgraph.graph import MessagesState, StateGraph, START, END
 from langchain_core.messages import SystemMessage
-from langchain_core.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate, BasePromptTemplate
+from langchain_core.prompt_values import PromptValue
 from langgraph.types import RetryPolicy
 import pydantic_core
 
@@ -59,9 +60,13 @@ def router_node(state: State, **kwargs):
         prompt=SystemMessage(content=prompt),
         response_format=Router
     )
-    agent_input = {"messages": [{"role": "user", "content": state['query']}]}
-    response = agent.invoke(agent_input)
     
+    # invoke agent and stream the response
+    agent_input = {"messages": [{"role": "user", "content": state['query']}]}
+    for chunks in agent.stream(agent_input, stream_mode="updates"):
+        print(chunks)
+        
+    response = agent.invoke(agent_input)
     output =  {
         'route': response["structured_response"].route,
         'answer': response["structured_response"].answer,
@@ -82,12 +87,13 @@ def planner_node(state: State, **kwargs):
     tree = utils.get_data_paths_bash_tree(data_dir)
     df_heads = kwargs['df_heads']
 
-    system_prompt = PromptTemplate.from_template(sys_prompt).partial(
+    system_prompt: BasePromptTemplate = PromptTemplate.from_template(sys_prompt).partial(
         tree = tree,
         df_heads = df_heads
     )
-    breakpoint()
-    system_prompt = SystemMessage(content=system_prompt)
+    
+    system_prompt: str = system_prompt.invoke(input={}).to_string()
+    system_prompt: SystemMessage = SystemMessage(content=system_prompt)
     
 
     # create the ReAct agent
@@ -98,13 +104,16 @@ def planner_node(state: State, **kwargs):
         response_format=Plan
     )
     
+    # invoke agent and stream the response
     agent_input = {"messages": [{"role": "user", "content": state['query']}]}
+    for chunks in agent.stream(agent_input, stream_mode="updates"):
+        print(chunks)
+        
     response = agent.invoke(agent_input)
             
     plan = response["structured_response"]
     return { 'plan': plan}
     
-    # May need to return a State-like dict
 
 def executor_node(state: State, **kwargs):
     """
@@ -167,4 +176,4 @@ if __name__ == "__main__":
 
     print("="*50)
     print("Plan")
-    print(result['plan'])
+    print(result['plan'].pretty_print())

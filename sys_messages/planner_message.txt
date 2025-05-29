@@ -44,4 +44,3 @@ Your Task:
 
 ---
 
-{format_instructions}
