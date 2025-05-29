@@ -127,7 +127,7 @@ def executor_node(state: State, **kwargs):
         tools.load_dataset,
         tools.get_sheet_names,
         tools.filesystemtools,
-        tools.getpythonrepltool
+        tools.run_code
     ]
     
     # create the ReAct agent
@@ -135,12 +135,17 @@ def executor_node(state: State, **kwargs):
         model=llm,
         tools=_tools,
         prompt=SystemMessage(content=prompt),
+        state_schema=State
     )
     
     for i, step in enumerate(plan.steps):
         print("-" * 50)
         print(f"Step {i+1}: {step.step_description}")
         print("-" * 50)
+        
+        # create input for the agent
+        agent_input = {"messages": [{"role": "user", "content": step.step_description}]}
+        response = agent.invoke(agent_input)
 
 def main():
     pass

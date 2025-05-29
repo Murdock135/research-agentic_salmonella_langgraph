@@ -1,6 +1,11 @@
-from langchain.tools import tool
+
+from langchain_core.tools import tool, InjectedToolCallId
 from langchain_community.tools import Tool
 from langchain_experimental.utilities import PythonREPL
+from langgraph.types import Command
+from langchain_core.messages import ToolMessage
+
+from typing import Annotated
 
 @tool
 def load_dataset(file_path, sheet_name=None):
@@ -91,4 +96,28 @@ def getpythonrepltool():
     )
     
     return pythonREPLtool
+
+
+def run_code(
+    code: str,
+    tool_call_id: Annotated[str, InjectedToolCallId],
+) -> Command:
+    """
+    Run Python code in a REPL environment.
+    Use this to execute steps of the plan that require Python code execution.
+    """
+    from langchain_experimental.utilities import PythonREPL
+    python_repl = PythonREPL()
     
+    return Command(
+        update={
+            "results": python_repl.run(code),
+            "messages": [
+                ToolMessage(
+                    content=f"Executed code: {code}",
+                    tool_call_id=tool_call_id,
+                    tool_name="python_repl",
+                )
+            ]
+            }
+    )
