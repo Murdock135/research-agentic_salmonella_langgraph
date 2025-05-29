@@ -58,7 +58,7 @@ def router_node(state: State, **kwargs):
         model=llm,
         tools=[],
         prompt=SystemMessage(content=prompt),
-        response_format=Router
+        response_format=(prompt, Router) # follow issue https://github.com/langchain-ai/langgraph/discussions/3794#discussioncomment-12578403
     )
     
     # invoke agent and stream the response
