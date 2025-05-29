@@ -2,6 +2,7 @@
 from config import Config
 import utils
 from output_schemas import Plan, Router
+import tools
 
 from typing import TypedDict
 from functools import partial
@@ -87,15 +88,14 @@ def planner_node(state: State, **kwargs):
     tree = utils.get_data_paths_bash_tree(data_dir)
     df_heads = kwargs['df_heads']
 
-    system_prompt: BasePromptTemplate = PromptTemplate.from_template(sys_prompt).partial(
+    # create system prompt
+    system_prompt_template: BasePromptTemplate = PromptTemplate.from_template(sys_prompt).partial(
         tree = tree,
         df_heads = df_heads
     )
+    _system_prompt: str = system_prompt_template.invoke(input={}).to_string()
+    system_prompt: SystemMessage = SystemMessage(content=_system_prompt)
     
-    system_prompt: str = system_prompt.invoke(input={}).to_string()
-    system_prompt: SystemMessage = SystemMessage(content=system_prompt)
-    
-
     # create the ReAct agent
     agent = create_react_agent(
         model=llm,
@@ -119,7 +119,28 @@ def executor_node(state: State, **kwargs):
     """
     Execute the plan
     """
-    pass
+    plan: Plan = state['plan']
+    llm = kwargs['llm']
+    prompt = kwargs['prompt']
+    
+    _tools = [
+        tools.load_dataset,
+        tools.get_sheet_names,
+        tools.filesystemtools,
+        tools.getpythonrepltool
+    ]
+    
+    # create the ReAct agent
+    agent = create_react_agent(
+        model=llm,
+        tools=_tools,
+        prompt=SystemMessage(content=prompt),
+    )
+    
+    for i, step in enumerate(plan.steps):
+        print("-" * 50)
+        print(f"Step {i+1}: {step.step_description}")
+        print("-" * 50)
 
 def main():
     pass
@@ -145,6 +166,7 @@ if __name__ == "__main__":
                            sys_prompt=prompts['planner_prompt'], 
                            data_dir=data_dir,
                            df_heads=df_heads)
+    executor_node = partial(executor_node, llm=llms['executor_llm'], prompt=prompts['executor_prompt'])
     
     # build graph
     graph_init = StateGraph(state_schema=State)
@@ -157,8 +179,12 @@ if __name__ == "__main__":
             retry_on=pydantic_core._pydantic_core.ValidationError
             )
         )
+    graph_init.add_node("executor", executor_node)
+    
     graph_init.add_edge(START, "router")
     graph_init.add_conditional_edges("router", router_func, {True: "planner", False: END})
+    graph_init.add_edge("planner", "executor")
+    graph_init.add_edge("executor", END)
     
     graph = graph_init.compile()
     
