@@ -6,6 +6,8 @@ from langgraph.types import Command
 from langchain_core.messages import ToolMessage
 
 from typing import Annotated
+python_repl = PythonREPL()
+
 
 @tool
 def load_dataset(file_path, sheet_name=None):
@@ -63,6 +65,7 @@ def filesystemtools(working_dir, selected_tools=['write_file']):
     from langchain_community.agent_toolkits import FileManagementToolkit
     
     TOOLS = [
+    'write_file',
     'read_file',
     'copy_file',
     'file_search',
@@ -88,7 +91,6 @@ def filesystemtools(working_dir, selected_tools=['write_file']):
     return tools
 
 def getpythonrepltool():
-    python_repl = PythonREPL()
     pythonREPLtool = Tool(
         name="python_repl",
         func=python_repl.run,
@@ -97,7 +99,7 @@ def getpythonrepltool():
     
     return pythonREPLtool
 
-
+@tool
 def run_code(
     code: str,
     tool_call_id: Annotated[str, InjectedToolCallId],

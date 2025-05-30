@@ -1,20 +1,22 @@
 # custom
 from config import Config
 import utils
-from output_schemas import Plan, Router
+from output_schemas import Plan, Router, ExecutorOutput
 import tools
 
-from typing import TypedDict
+from typing import TypedDict, Annotated, Sequence
 from functools import partial
 import argparse
 
 from langgraph.prebuilt import create_react_agent
 from langgraph.graph import MessagesState, StateGraph, START, END
-from langchain_core.messages import SystemMessage
+from langgraph.graph.message import add_messages
+from langchain_core.messages import SystemMessage, BaseMessage
 from langchain_core.prompts import PromptTemplate, BasePromptTemplate
 from langchain_core.prompt_values import PromptValue
 from langgraph.types import RetryPolicy
 import pydantic_core
+from pydantic import BaseModel, Field
 
 def get_llms(llm_config: dict):
     router_config = llm_config['router']
@@ -40,7 +42,14 @@ class State(TypedDict):
     route: bool | None
     answer: str | None
     plan: Plan | None
-    results: MessagesState | None
+    
+    # executor-specific
+    code: Annotated[list, add_messages]
+    execution_results: Annotated[list, add_messages]
+    files_generated: Annotated[list, add_messages]
+    assumptions: Annotated[list, add_messages]
+    wants: Annotated[list, add_messages]
+    misc: Annotated[list, add_messages]
     
 def router_func(router_output):
     """
@@ -122,20 +131,24 @@ def executor_node(state: State, **kwargs):
     plan: Plan = state['plan']
     llm = kwargs['llm']
     prompt = kwargs['prompt']
+    output_dir = kwargs['output_dir']
     
     _tools = [
         tools.load_dataset,
         tools.get_sheet_names,
-        tools.filesystemtools,
-        tools.run_code
-    ]
+        tools.getpythonrepltool()
+    ] + (tools.filesystemtools(working_dir=output_dir,
+                                   selected_tools=['write_file', 'read_file', 'list_directory', 'file_search']))
+    
+    # TODO: Create prompt with previous code and messages
+    
     
     # create the ReAct agent
     agent = create_react_agent(
         model=llm,
         tools=_tools,
         prompt=SystemMessage(content=prompt),
-        state_schema=State
+        response_format=(prompt, ExecutorOutput)
     )
     
     for i, step in enumerate(plan.steps):
@@ -146,6 +159,7 @@ def executor_node(state: State, **kwargs):
         # create input for the agent
         agent_input = {"messages": [{"role": "user", "content": step.step_description}]}
         response = agent.invoke(agent_input)
+        
 
 def main():
     pass
@@ -171,7 +185,11 @@ if __name__ == "__main__":
                            sys_prompt=prompts['planner_prompt'], 
                            data_dir=data_dir,
                            df_heads=df_heads)
-    executor_node = partial(executor_node, llm=llms['executor_llm'], prompt=prompts['executor_prompt'])
+    executor_output_dir = config.EXECUTOR_OUTPUT_DIR
+    executor_node = partial(executor_node, 
+                            llm=llms['executor_llm'], 
+                            prompt=prompts['executor_prompt'],
+                            output_dir=executor_output_dir)
     
     # build graph
     graph_init = StateGraph(state_schema=State)

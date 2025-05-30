@@ -37,3 +37,12 @@ class Router(BaseModel):
     """Output of the router node"""
     route: bool = Field(..., description="Whether the query requires further planning (True) or can be answered directly (False)")
     answer: str | None = Field(..., description="The answer to the query if it can be answered directly")
+    
+class ExecutorOutput(BaseModel):
+    """Output of the executor node"""
+    code: str = Field(..., description="List of code snippets generated to answer the query")
+    execution_results: str = Field(..., description="Results of executing the code snippets")
+    files_generated: List[str] = Field(..., description="Files generated during execution")
+    assumptions: str = Field(..., description="Assumptions made during execution")
+    wants: str = Field(..., description="Further information needed to improve execution")
+    misc: str = Field(..., description="Miscellaneous information or notes")
