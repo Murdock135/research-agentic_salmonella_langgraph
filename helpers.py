@@ -20,7 +20,7 @@ def save_text(text, filepath, time_stamp=True):
     with open(file_path, 'w') as f:
         f.write(text)
 
-def load_dataset(file_path, sheet_name=None):
+def load_dataset_old(file_path, sheet_name=None):
     import pandas as pd
 
     """
@@ -191,6 +191,18 @@ def parse_args():
     parser.add_argument("--model", type=str, help="Model name")
     return parser.parse_args()
 
+def dump_dict_to_json(dict, save_path):
+    """
+    Dumps a dictionary to a JSON file.
+    
+    Args:
+        dict (dict): The dictionary to dump.
+        save_path (str): The path where the JSON file will be saved.
+    """
+    import json
+    with open(save_path, 'w') as f:
+        json.dump(dict, f, indent=4)
+    print(f"Dictionary dumped to {save_path}")
     
 
 # Tests

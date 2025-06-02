@@ -1,8 +1,8 @@
 import os
 import datetime
 
-from utils import load_text
-from load_env import load_env_vars
+from .helpers import load_text
+from .load_env import load_env_vars
 
 class Config:
     def __init__(self):
