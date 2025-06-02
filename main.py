@@ -44,12 +44,12 @@ class State(TypedDict):
     plan: Plan | None
     
     # executor-specific
-    code: Annotated[list, add_messages]
-    execution_results: Annotated[list, add_messages]
-    files_generated: Annotated[list, add_messages]
-    assumptions: Annotated[list, add_messages]
-    wants: Annotated[list, add_messages]
-    misc: Annotated[list, add_messages]
+    code: list
+    execution_results: list
+    files_generated: list
+    assumptions: list
+    wants: list
+    misc: list
     
 def router_func(router_output):
     """
@@ -132,7 +132,10 @@ def executor_node(state: State, **kwargs):
     llm = kwargs['llm']
     prompt = kwargs['prompt']
     output_dir = kwargs['output_dir']
-    
+    data_dir = kwargs['data_dir']
+    tree = utils.get_data_paths_bash_tree(data_dir)
+    df_heads = kwargs['df_heads']
+    breakpoint()
     _tools = [
         tools.load_dataset,
         tools.get_sheet_names,
@@ -141,16 +144,21 @@ def executor_node(state: State, **kwargs):
                                    selected_tools=['write_file', 'read_file', 'list_directory', 'file_search']))
     
     # TODO: Create prompt with previous code and messages
-    
+    system_prompt_template: BasePromptTemplate = PromptTemplate.from_template(prompt).partial(
+        tree=tree,
+        df_heads=df_heads,
+    )
+    system_prompt_str: str = system_prompt_template.invoke(input={}).to_string()
+    system_prompt: SystemMessage = SystemMessage(content=system_prompt_str)
     
     # create the ReAct agent
     agent = create_react_agent(
         model=llm,
         tools=_tools,
-        prompt=SystemMessage(content=prompt),
+        prompt=system_prompt,
         response_format=(prompt, ExecutorOutput)
     )
-    
+    breakpoint()
     for i, step in enumerate(plan.steps):
         print("-" * 50)
         print(f"Step {i+1}: {step.step_description}")
@@ -159,7 +167,19 @@ def executor_node(state: State, **kwargs):
         # create input for the agent
         agent_input = {"messages": [{"role": "user", "content": step.step_description}]}
         response = agent.invoke(agent_input)
-        
+        structured_response = response["structured_response"]
+
+        # add components of response to state
+        state['code'].append(structured_response.code)
+        state['execution_results'].append(structured_response.execution_results)
+        state['files_generated'].append(structured_response.files_generated)
+        state['assumptions'].append(structured_response.assumptions)
+        state['wants'].append(structured_response.wants)
+        state['misc'].append(structured_response.misc)
+
+        # print the response
+        print("Response:")
+        print(response)
 
 def main():
     pass
@@ -189,6 +209,8 @@ if __name__ == "__main__":
     executor_node = partial(executor_node, 
                             llm=llms['executor_llm'], 
                             prompt=prompts['executor_prompt'],
+                            data_dir=data_dir,
+                            df_heads=df_heads,
                             output_dir=executor_output_dir)
     
     # build graph

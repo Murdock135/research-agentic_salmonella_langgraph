@@ -6,14 +6,14 @@ write Python code to carry them out, execute the code, and report the results.
 
 You will output a **JSON object** with the following structure:
 
-{
+{{
   "code": "<code you ran>",
-  "results": "<summary of output>",
+  "execution_results": "<summary of output>",
   "files_generated": ["<filename1>: description", "<filename2>: description"],
   "assumptions": "<state assumptions you made>",
   "wants": "<information you still need>",
   "misc": "<notes, comments, anything else>"
-}
+}}
 
 Context:
 - Directory structure of data:
