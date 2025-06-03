@@ -1,6 +1,6 @@
 # This script downloads datasets from a specified Hugging Face repository.
 # Docs: https://huggingface.co/docs/huggingface_hub/en/guides/download#download-an-entire-repository
-# Optional: Read https://huggingface.co/docs/datasets/en/cache to understand how to load the downloaded datasets.
+# Optional: Read https://huggingface.co/docs/datasets/en/cache and https://huggingface.co/docs/datasets/load_hub#configurationsto understand how to load the downloaded datasets.
 
 from huggingface_hub import snapshot_download
 

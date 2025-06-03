@@ -123,3 +123,44 @@ def run_code(
             ]
             }
     )
+
+@tool
+def get_cached_dataset_path(repo_id: str):
+    """ Get the path to a cached dataset from Hugging Face Hub.
+    Args:
+        repo_id (str): The repository ID of the dataset on Hugging Face Hub.
+    Returns:
+        Path: The path to the cached dataset.
+    """
+    from huggingface_hub import snapshot_download
+    import os
+    from pathlib import Path
+    
+    # Load HF Token
+    HF_TOKEN = os.getenv("HF_TOKEN")
+    if HF_TOKEN is None:
+        raise ValueError("HF_TOKEN environment variable is not set. Please set it before running the script.")
+    
+    # get path to cached dataset
+    path = snapshot_download(repo_id=repo_id, repo_type="dataset", token=HF_TOKEN)
+
+    return Path(path)
+
+@tool
+def get_glob_files(repo_id):
+    """
+    Get list of files in a directory of all patterns"""
+
+    path = get_cached_dataset_path.invoke(repo_id)
+
+    for _ in path.rglob("*"):
+        if not _.is_file():
+            raise ValueError(f"Path {path} is not a file. Please provide a valid file path.")
+        
+        print(_)
+
+if __name__ == "__main__":
+    # Example usage of the tools
+    from config import Config
+    config = Config()
+    repo_ids = config.get_data_repoIDs
