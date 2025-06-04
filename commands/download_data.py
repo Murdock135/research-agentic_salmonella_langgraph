@@ -65,7 +65,7 @@ def main():
         }
 
     project_root = config.BASE_DIR
-    dump_dict_to_json(manifest, project_root + "/manifest.json")
+    dump_dict_to_json(manifest, project_root + "/data_manifest.json")
 
 if __name__ == "__main__":
     main()

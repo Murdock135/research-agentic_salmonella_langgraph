@@ -27,12 +27,12 @@ class Config:
         
         # Path to user messages
         self.EXPLORER_MESSAGE_PATH = os.path.join(self.PROMPT_DIR, 'explorer_user_message.txt')
-
+        
         # Data directories
-        self.DATA_DIR = os.path.join(self.BASE_DIR, 'data')
-        self.RAW_DATA_DIR = os.path.join(self.DATA_DIR, 'raw')
-        self.PROCESSED_DATA_DIR = os.path.join(self.DATA_DIR, 'processed')
-        self.SQL_DATA_DIR = os.path.join(self.DATA_DIR, 'SQL version')
+        # self.DATA_DIR = os.path.join(self.BASE_DIR, 'data')
+        # self.RAW_DATA_DIR = os.path.join(self.DATA_DIR, 'raw')
+        # self.PROCESSED_DATA_DIR = os.path.join(self.DATA_DIR, 'processed')
+        # self.SQL_DATA_DIR = os.path.join(self.DATA_DIR, 'SQL version')
 
         # Specific Data directories
         # self.MMG_DATA_DIR = os.path.join(self.RAW_DATA_DIR, 'mmg')
@@ -130,8 +130,6 @@ class Config:
         with open(path_to_manifest_file, 'r') as f:
             manifest: dict = json.load(f)
         
-        breakpoint()
-
         return manifest
     
     def get_data_repoIDs(self, path_to_manifest_file):
@@ -147,23 +145,23 @@ class Config:
 if __name__ == "__main__":
     config = Config()
     print("Base Directory: ", config.BASE_DIR)
-    print("Data Directory: ", config.DATA_DIR)
-    print("Raw Data Directory: ", config.RAW_DATA_DIR)
-    print("Processed Data Directory: ", config.PROCESSED_DATA_DIR)
-    print("SQL Data Directory: ", config.SQL_DATA_DIR)
-    print("MMG Data Directory: ", config.MMG_DATA_DIR)
-    print("PN Data Directory: ", config.PN_DATA_DIR)
-    print("SVI Data Directory: ", config.SVI_DATA_DIR)
-    print("Raw Poultry Data Directory: ", config.RAW_POULTRY_DATA_DIR)
-    print("Census Data Directory: ", config.CENSUS_DATA_DIR)
-    print("NORS Data Directory: ", config.NORS_DATA_DIR)
-    print("FoodNet Data Directory: ", config.FOODNET_DATA_DIR)
-    print("Socioeconomic Salmonella Data Directory: ", config.SOCIOECONO_SALMONELLA_DIR)
-    print("Selected Data Directory: ", config.SELECTED_DATA_DIR)
-    print("Selected MMG Directory: ", config.SELECTED_MMG_DIR)
-    print("Selected NORS Directory: ", config.SELECTED_NORS_DIR)
-    print("Selected SVI Directory: ", config.SELECTED_SVI_DIR)
-    print("Selected Socioeconomic Salmonella Directory: ", config.SELECTED_SOCIOECONO_SALMONELLA)
+    # print("Data Directory: ", config.DATA_DIR)
+    # print("Raw Data Directory: ", config.RAW_DATA_DIR)
+    # print("Processed Data Directory: ", config.PROCESSED_DATA_DIR)
+    # print("SQL Data Directory: ", config.SQL_DATA_DIR)
+    # print("MMG Data Directory: ", config.MMG_DATA_DIR)
+    # print("PN Data Directory: ", config.PN_DATA_DIR)
+    # print("SVI Data Directory: ", config.SVI_DATA_DIR)
+    # print("Raw Poultry Data Directory: ", config.RAW_POULTRY_DATA_DIR)
+    # print("Census Data Directory: ", config.CENSUS_DATA_DIR)
+    # print("NORS Data Directory: ", config.NORS_DATA_DIR)
+    # print("FoodNet Data Directory: ", config.FOODNET_DATA_DIR)
+    # print("Socioeconomic Salmonella Data Directory: ", config.SOCIOECONO_SALMONELLA_DIR)
+    # print("Selected Data Directory: ", config.SELECTED_DATA_DIR)
+    # print("Selected MMG Directory: ", config.SELECTED_MMG_DIR)
+    # print("Selected NORS Directory: ", config.SELECTED_NORS_DIR)
+    # print("Selected SVI Directory: ", config.SELECTED_SVI_DIR)
+    # print("Selected Socioeconomic Salmonella Directory: ", config.SELECTED_SOCIOECONO_SALMONELLA)
     print("Output Directory: ", config.OUTPUT_DIR)
     print("Run Output Directory: ", config.RUN_OUTPUT_DIR)
     print("Planner Output Directory: ", config.PLANNER_OUTPUT_DIR)
@@ -171,7 +169,7 @@ if __name__ == "__main__":
     print("Analyzer Output Directory: ", config.ANALYZER_OUTPUT_DIR)
     print("Executor Output Directory: ", config.EXECUTOR_OUTPUT_DIR)
     print("Aggregator Output Directory: ", config.AGGREGATOR_OUTPUT_DIR)
-    print("Selected Data Paths: ", config.get_selected_data_paths())
+    # print("Selected Data Paths: ", config.get_selected_data_paths())
     print("Prompts: ", config.load_prompts())
 
 

@@ -161,6 +161,6 @@ def get_glob_files(repo_id):
 
 if __name__ == "__main__":
     # Example usage of the tools
-    from config import Config
+    from .config import Config
     config = Config()
     repo_ids = config.get_data_repoIDs

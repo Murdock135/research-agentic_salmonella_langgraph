@@ -20,7 +20,7 @@ def save_text(text, filepath, time_stamp=True):
     with open(file_path, 'w') as f:
         f.write(text)
 
-def load_dataset_old(file_path, sheet_name=None):
+def load_dataset(file_path, sheet_name=None):
     import pandas as pd
 
     """
@@ -208,7 +208,7 @@ def dump_dict_to_json(dict, save_path):
 # Tests
 if __name__ == "__main__":
     import os
-    from config import Config
+    from .config import Config
     
     config = Config()
     data_paths = config.get_selected_data_paths()
