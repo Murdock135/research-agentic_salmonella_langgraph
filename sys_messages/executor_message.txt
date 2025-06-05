@@ -16,8 +16,8 @@ You will output a **JSON object** with the following structure:
 }}
 
 Context:
-- Directory structure of data:
-{tree}
+- The datasets are huggingface datasets (downloaded with the function `huggingface_hub.snapshot_download()`). Here's the name of each dataset and their locations.
+{data_manifest}
 
 - First few rows of each dataset:
 {df_heads}
