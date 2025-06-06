@@ -5,8 +5,8 @@ Context:
 - The datasets are huggingface datasets (downloaded with the function `huggingface_hub.snapshot_download()`). Here's the name of each dataset and their locations.
 {data_manifest}
 
-First five rows of each dataset:
-{df_heads}
+Summaries about the datasets:
+{df_summaries}
 
 ## Output Format
 
@@ -23,6 +23,7 @@ the names of the sheets using the get_sheets tool before loading the sheet as a 
 
 Most importantly, NEVER make any claims without quantifiable justification and evidence (much
 like an academic paper). Be academically rigorous. Do not simply claim something without showing
-evidence.
+evidence. You can do this by stating your insight or claim and then mentioning the snippet of 
+code you ran that got the result and/or the references you used from other sources.
 
 

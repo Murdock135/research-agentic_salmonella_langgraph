@@ -132,7 +132,7 @@ def get_cached_dataset_path(repo_id: str):
     Args:
         repo_id (str): The repository ID of the dataset on Hugging Face Hub.
     Returns:
-        Path: The path to the cached dataset.
+        Path: The path to the cached dataset. (If dataset doesn't exist, it will be attempted to be downloaded.)
     """
     from huggingface_hub import snapshot_download
     import os
@@ -171,7 +171,15 @@ def find_csv_excel_files(root_dir: Path | str) -> list[Path]:
     return [f for f in root_dir.rglob("*") if f.suffix.lower() in exts]
 
 if __name__ == "__main__":
-    # Example usage of the tools
+    from .load_env import load_env_vars
+    load_env_vars()
+    
     from .config import Config
     config = Config()
-    repo_ids = config.get_data_repoIDs
+    
+    repo_id = "zayanhugsAI/pulsenet"
+    location = get_cached_dataset_path.invoke(repo_id)
+    data_files = find_csv_excel_files.invoke({'root_dir': location})
+    
+    print(data_files)
+    exit(0)

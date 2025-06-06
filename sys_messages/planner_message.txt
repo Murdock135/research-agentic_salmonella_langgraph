@@ -7,8 +7,8 @@ Context:
 - The datasets are huggingface datasets (downloaded with the function `huggingface_hub.snapshot_download()`). Here's the name of each dataset and their locations.
 {data_manifest}
 
-First five rows of each dataset:
-{df_heads}
+Summaries of datasets:
+{df_summaries}
 
 Output Format:
 Return your plan AND your needs (further info you think you need) as a JSON-compatible list of steps + some text about additional info you 

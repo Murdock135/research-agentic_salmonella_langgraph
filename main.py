@@ -7,6 +7,7 @@ from . import tools
 from typing import TypedDict, Annotated, Sequence
 from functools import partial
 import argparse
+import os
 
 from langgraph.prebuilt import create_react_agent
 from langgraph.graph import MessagesState, StateGraph, START, END
@@ -44,6 +45,7 @@ class State(TypedDict):
     plan: Plan | None
     
     # executor-specific
+    step: list
     code: list
     execution_results: list
     files_generated: list
@@ -93,13 +95,26 @@ def planner_node(state: State, **kwargs):
     
     sys_prompt = kwargs['sys_prompt']
     llm = kwargs['llm']
-    data_manifest = kwargs['data_manifest']
-    df_heads = kwargs['df_heads']
+    config: Config = kwargs['config']
+    
+    # load manifest
+    manifest_path = os.path.join(config.BASE_DIR, "data_manifest.json")
+    if not os.path.exists(manifest_path):
+        raise FileNotFoundError(f"No data manifest found in {manifest_path}.")
+    
+    manifest: dict = helpers.load_data_manifest(manifest_path)
+    global manifest_str
+    manifest_str = str(manifest)
+    
+    # load df summaries
+    global df_summaries_str
+    df_summaries = helpers.get_df_summaries_from_manifest(manifest)
+    df_summaries_str = str(df_summaries)
 
     # create system prompt
     system_prompt_template: BasePromptTemplate = PromptTemplate.from_template(sys_prompt).partial(
-        data_manifest=data_manifest,
-        df_heads = df_heads
+        data_manifest=manifest_str,
+        df_summaries=df_summaries
     )
     _system_prompt: str = system_prompt_template.invoke(input={}).to_string()
     system_prompt: SystemMessage = SystemMessage(content=_system_prompt)
@@ -120,7 +135,7 @@ def planner_node(state: State, **kwargs):
     response = agent.invoke(agent_input)
             
     plan = response["structured_response"]
-    return { 'plan': plan}
+    return {'plan': plan}
     
 
 def executor_node(state: State, **kwargs):
@@ -132,19 +147,21 @@ def executor_node(state: State, **kwargs):
     prompt = kwargs['prompt']
     output_dir = kwargs['output_dir']
     data_manifest = kwargs['data_manifest']
-    df_heads = kwargs['df_heads']
+    df_summaries = kwargs['df_summaries']
     breakpoint()
     _tools = [
         tools.load_dataset,
         tools.get_sheet_names,
-        tools.getpythonrepltool()
+        tools.getpythonrepltool(),
+        tools.find_csv_excel_files,
+        tools.get_cached_dataset_path,
     ] + (tools.filesystemtools(working_dir=output_dir,
                                    selected_tools=['write_file', 'read_file', 'list_directory', 'file_search']))
     
     # TODO: Create prompt with previous code and messages
     system_prompt_template: BasePromptTemplate = PromptTemplate.from_template(prompt).partial(
         data_manifest=data_manifest,
-        df_heads=df_heads,
+        df_summaries=df_summaries,
     )
     system_prompt_str: str = system_prompt_template.invoke(input={}).to_string()
     system_prompt: SystemMessage = SystemMessage(content=system_prompt_str)
@@ -168,6 +185,7 @@ def executor_node(state: State, **kwargs):
         structured_response = response["structured_response"]
 
         # add components of response to state
+        state['step'].append(structured_response.step)
         state['code'].append(structured_response.code)
         state['execution_results'].append(structured_response.execution_results)
         state['files_generated'].append(structured_response.files_generated)
@@ -193,16 +211,14 @@ if __name__ == "__main__":
     llm_config = config.load_llm_config()
     llms = get_llms(llm_config)
     prompts = config.load_prompts()
-    data_dir = config.SELECTED_DATA_DIR
-    df_heads = helpers.get_df_heads(data_dir)
+    
 
     # complete node definitions
     router_node = partial(router_node, llm=llms['router_llm'], prompt=prompts['router_prompt'])
     planner_node = partial(planner_node, 
                            llm=llms['planner_llm'], 
                            sys_prompt=prompts['planner_prompt'], 
-                           data_dir=data_dir,
-                           df_heads=df_heads)
+                           config=config)
     executor_output_dir = config.EXECUTOR_OUTPUT_DIR
     executor_node = partial(executor_node, 
                             llm=llms['executor_llm'], 

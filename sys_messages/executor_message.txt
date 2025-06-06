@@ -7,6 +7,7 @@ write Python code to carry them out, execute the code, and report the results.
 You will output a **JSON object** with the following structure:
 
 {{
+  "step": "<what you were asked to do by the user>",
   "code": "<code you ran>",
   "execution_results": "<summary of output>",
   "files_generated": ["<filename1>: description", "<filename2>: description"],
@@ -19,8 +20,8 @@ Context:
 - The datasets are huggingface datasets (downloaded with the function `huggingface_hub.snapshot_download()`). Here's the name of each dataset and their locations.
 {data_manifest}
 
-- First few rows of each dataset:
-{df_heads}
+- Summaries about the datasets:
+{df_summaries}
 
 Rules:
 - DO NOT make up or hallucinate any data.

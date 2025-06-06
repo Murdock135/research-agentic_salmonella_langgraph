@@ -40,6 +40,7 @@ class Router(BaseModel):
     
 class ExecutorOutput(BaseModel):
     """Output of the executor node"""
+    step: str = Field(..., description="What you were tasked to do by the user")
     code: str = Field(..., description="List of code snippets generated to answer the query")
     execution_results: str = Field(..., description="Results of executing the code snippets")
     files_generated: List[str] = Field(..., description="Files generated during execution")
