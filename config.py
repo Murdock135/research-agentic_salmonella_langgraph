@@ -127,6 +127,9 @@ class Config:
         """
         import json
         
+        if not os.path.exists(path_to_manifest_file):
+            raise FileNotFoundError(f"Manifest file not found: {path_to_manifest_file}")
+        
         with open(path_to_manifest_file, 'r') as f:
             manifest: dict = json.load(f)
         

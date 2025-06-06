@@ -1,4 +1,5 @@
 # utils.py
+from pandas import DataFrame
 
 def load_text(file_path):
     """Loads text from a file."""
@@ -60,46 +61,79 @@ def get_data_paths_bash_tree(root):
         output = f"Error running tree command: {e}"
     return output
 
-def get_df_heads(root_data_dir):
-    import os
+def get_df_summary(df: DataFrame):
+    summary = DataFrame({
+        'Column': df.columns,
+        'Non-Null Count': df.notnull().sum(),
+        'Dtype': df.dtypes
+    })
+    
+    return summary.to_markdown()
+    
+def get_df_summary_from_excel(file_path) -> dict[str, str]:
     import pandas as pd
     
-    datasets = []
-    df_heads_markdown = []
-    text = ""
+    """
+    Loads an Excel file and returns the summaries of all sheets in markdown format.
     
-    for dirpath, dirname, files in os.walk(root_data_dir):
-        if len(files) == 0:
-            continue
-        for file in files:
-            file_path = os.path.join(dirpath, file)
-            if file.endswith('.csv'):
-                try:
-                    df = load_dataset(file_path)
-                    df_head = df.head().to_markdown()
-                    df_heads_markdown.append(f"File: {file_path}\n{df_head}")
-                    datasets.append(file_path)
-                    
-                    text += f"File: {file_path}\n{df_head}\n\n"
-                except Exception as e:
-                    print(f"Error loading {file_path}: {e}")
+    Args:
+        file_path (str): Path to the Excel file.
+        
+    Returns:
+        str: Markdown formatted string of sheet summaries.
+    """
+    xls = pd.ExcelFile(file_path)
+    df_summaries = {}
+    
+    for sheet_name in xls.sheet_names:
+        df = pd.read_excel(xls, sheet_name=sheet_name)
+        
+        try:
+            summary = get_df_summary(df)
+        except Exception as e:
+            raise Exception(f"could not summarise: {file_path}'s sheet {sheet_name} to markdown")
             
-            if file.endswith('.xlsx'):
-                try:
-                    # Load all sheets
-                    xls = pd.ExcelFile(file_path)
-                    for sheet_name in xls.sheet_names:
-                        df = pd.read_excel(xls, sheet_name=sheet_name)
-                        df_head = df.head().to_markdown()
-                        df_heads_markdown.append(f"File: {file_path}, Sheet: {sheet_name}\n{df_head}")
-                        datasets.append(file_path)
-                        
-                        text += f"File: {file_path}, Sheet: {sheet_name}\n{df_head}\n\n"
-                except Exception as e:
-                    print(f"Error loading {file_path}: {e}")
+        df_summaries[sheet_name] = summary
     
-    return text
+    return df_summaries
 
+def get_df_summaries_from_manifest(manifest: dict[str, dict[str, str]]) -> dict[str, str]:
+    """
+    Extracts data summaries from a manifest dictionary.
+    
+    Args:
+        manifest (dict): Dictionary containing dataset information.
+        
+    Returns:
+        dict: Dictionary with sheet names as keys and data summaries (columns, non null counts, dtypes) in markdown format as values.
+    """
+    from .tools import find_csv_excel_files, get_cached_dataset_path
+    from pathlib import Path
+    import pandas as pd
+    
+    df_summaries = {}
+    
+    for dataset, info in manifest.items():
+        df_summaries[dataset] = {} # create sub dictionary for each dataset
+        repo_id = info.get('repo_id')
+        location: Path = get_cached_dataset_path.invoke(repo_id)
+        
+        files = find_csv_excel_files.invoke({'root_dir': location})
+        for file in files:
+            # get excels and csvs
+            if file.suffix == '.xlsx' or file.suffix == '.csv':
+                subdata_name = file.name # file name
+                df_summaries[dataset][subdata_name] = None # initialize for storing df.head later
+                # Get head
+                if file.suffix == '.csv':
+                    df = pd.read_csv(file)
+                    df_summaries[dataset][subdata_name] = get_df_summary(df)
+                elif file.suffix == '.xlsx':
+                    df_heads : dict[str, str] = get_df_summary_from_excel(file) # df_heads is a dict with {sheet: df_head_markdown}
+                    df_summaries[dataset][subdata_name] = df_heads
+                        
+    return df_summaries
+                
 
 def get_llm(model='gpt-4o', provider='openai'):
     if provider=='openai':
@@ -204,6 +238,29 @@ def dump_dict_to_json(dict, save_path):
         json.dump(dict, f, indent=4)
     print(f"Dictionary dumped to {save_path}")
     
+def load_data_manifest(path_to_manifest_file) -> dict[str, dict[str, str]]:
+    """
+    Load a data manifest file and return its contents.
+    """
+    import json
+    import os
+    
+    if not os.path.exists(path_to_manifest_file):
+        raise FileNotFoundError(f"Manifest file not found: {path_to_manifest_file}")
+    
+    with open(path_to_manifest_file, 'r') as f:
+        manifest: dict = json.load(f)
+    
+    return manifest
+
+def get_data_repoIDs(path_to_manifest_file):
+    """
+    Get the repository IDs of datasets from the manifest file.
+    """
+    manifest = load_data_manifest(path_to_manifest_file)
+    repo_ids = {dataset: info['repo_id'] for dataset, info in manifest.items() if 'repo_id' in info}
+    
+    return repo_ids
 
 # Tests
 if __name__ == "__main__":
@@ -211,15 +268,9 @@ if __name__ == "__main__":
     from .config import Config
     
     config = Config()
-    data_paths = config.get_selected_data_paths()
-    mmg_dir = data_paths['mmg']
-    mmg_data_path = os.path.join(mmg_dir, 'MMG2022_2020-2019Data_ToShare.xlsx')
+    manifest_path = os.path.join(config.BASE_DIR, "data_manifest.json")
+    manifest_dict= load_data_manifest(manifest_path)
     
-    df = load_dataset(mmg_data_path, sheet_name='County')
-    print(df.head().to_markdown())
-    print("Data loaded successfully.")
-
-    # Test get_data_paths_bash_tree
-    tree_output = get_data_paths_bash_tree(config.SELECTED_DATA_DIR)
-    print("Data paths tree:")
-    print(tree_output)
+    df_heads = get_df_summaries_from_manifest(manifest_dict)
+    
+    print(df_heads)

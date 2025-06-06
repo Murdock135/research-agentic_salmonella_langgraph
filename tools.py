@@ -5,6 +5,8 @@ from langchain_experimental.utilities import PythonREPL
 from langgraph.types import Command
 from langchain_core.messages import ToolMessage
 
+
+from pathlib import Path
 from typing import Annotated
 python_repl = PythonREPL()
 
@@ -147,17 +149,26 @@ def get_cached_dataset_path(repo_id: str):
     return Path(path)
 
 @tool
-def get_glob_files(repo_id):
+def find_csv_excel_files(root_dir: Path | str) -> list[Path]:
     """
-    Get list of files in a directory of all patterns"""
+    Recursively find all CSV and Excel files in a directory.
+    
+    Args:
+        root_dir (Path): Root directory to search.
+    
+    Returns:
+        List[Path]: List of file paths with .csv, .xls, or .xlsx extensions.
+    """
+    from pathlib import Path
+    
+    if isinstance(root_dir, str):
+        root_dir = Path(root_dir)
+    
+    if not root_dir.is_dir():
+        raise NotADirectoryError(f"{root_dir} is not a valid directory")
 
-    path = get_cached_dataset_path.invoke(repo_id)
-
-    for _ in path.rglob("*"):
-        if not _.is_file():
-            raise ValueError(f"Path {path} is not a file. Please provide a valid file path.")
-        
-        print(_)
+    exts = {'.csv', '.xls', '.xlsx'}
+    return [f for f in root_dir.rglob("*") if f.suffix.lower() in exts]
 
 if __name__ == "__main__":
     # Example usage of the tools

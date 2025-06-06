@@ -93,13 +93,12 @@ def planner_node(state: State, **kwargs):
     
     sys_prompt = kwargs['sys_prompt']
     llm = kwargs['llm']
-    data_dir = kwargs['data_dir']
-    tree = helpers.get_data_paths_bash_tree(data_dir)
+    data_manifest = kwargs['data_manifest']
     df_heads = kwargs['df_heads']
 
     # create system prompt
     system_prompt_template: BasePromptTemplate = PromptTemplate.from_template(sys_prompt).partial(
-        tree = tree,
+        data_manifest=data_manifest,
         df_heads = df_heads
     )
     _system_prompt: str = system_prompt_template.invoke(input={}).to_string()
@@ -132,8 +131,7 @@ def executor_node(state: State, **kwargs):
     llm = kwargs['llm']
     prompt = kwargs['prompt']
     output_dir = kwargs['output_dir']
-    data_dir = kwargs['data_dir']
-    tree = helpers.get_data_paths_bash_tree(data_dir)
+    data_manifest = kwargs['data_manifest']
     df_heads = kwargs['df_heads']
     breakpoint()
     _tools = [
@@ -145,7 +143,7 @@ def executor_node(state: State, **kwargs):
     
     # TODO: Create prompt with previous code and messages
     system_prompt_template: BasePromptTemplate = PromptTemplate.from_template(prompt).partial(
-        tree=tree,
+        data_manifest=data_manifest,
         df_heads=df_heads,
     )
     system_prompt_str: str = system_prompt_template.invoke(input={}).to_string()
