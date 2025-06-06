@@ -44,14 +44,12 @@ class State(TypedDict):
     answer: str | None
     plan: Plan | None
     
+    # data-specific
+    data_manifest: dict
+    df_summaries: dict
+    
     # executor-specific
-    step: list
-    code: list
-    execution_results: list
-    files_generated: list
-    assumptions: list
-    wants: list
-    misc: list
+    executor_results: dict
     
 def router_func(router_output):
     """
@@ -103,18 +101,16 @@ def planner_node(state: State, **kwargs):
         raise FileNotFoundError(f"No data manifest found in {manifest_path}.")
     
     manifest: dict = helpers.load_data_manifest(manifest_path)
-    global manifest_str
     manifest_str = str(manifest)
     
     # load df summaries
-    global df_summaries_str
     df_summaries = helpers.get_df_summaries_from_manifest(manifest)
     df_summaries_str = str(df_summaries)
 
     # create system prompt
     system_prompt_template: BasePromptTemplate = PromptTemplate.from_template(sys_prompt).partial(
         data_manifest=manifest_str,
-        df_summaries=df_summaries
+        df_summaries=df_summaries_str
     )
     _system_prompt: str = system_prompt_template.invoke(input={}).to_string()
     system_prompt: SystemMessage = SystemMessage(content=_system_prompt)
@@ -135,7 +131,7 @@ def planner_node(state: State, **kwargs):
     response = agent.invoke(agent_input)
             
     plan = response["structured_response"]
-    return {'plan': plan}
+    return {'plan': plan, 'data_manifest': manifest, 'df_summaries': df_summaries}
     
 
 def executor_node(state: State, **kwargs):
@@ -146,8 +142,9 @@ def executor_node(state: State, **kwargs):
     llm = kwargs['llm']
     prompt = kwargs['prompt']
     output_dir = kwargs['output_dir']
-    data_manifest = kwargs['data_manifest']
-    df_summaries = kwargs['df_summaries']
+    
+    data_manifest = state['data_manifest']
+    df_summaries = state['df_summaries']
     breakpoint()
     _tools = [
         tools.load_dataset,
@@ -160,8 +157,8 @@ def executor_node(state: State, **kwargs):
     
     # TODO: Create prompt with previous code and messages
     system_prompt_template: BasePromptTemplate = PromptTemplate.from_template(prompt).partial(
-        data_manifest=data_manifest,
-        df_summaries=df_summaries,
+        data_manifest=str(data_manifest),
+        df_summaries=str(df_summaries),
     )
     system_prompt_str: str = system_prompt_template.invoke(input={}).to_string()
     system_prompt: SystemMessage = SystemMessage(content=system_prompt_str)
@@ -174,6 +171,8 @@ def executor_node(state: State, **kwargs):
         response_format=(prompt, ExecutorOutput)
     )
     breakpoint()
+    
+    results = {}
     for i, step in enumerate(plan.steps):
         print("-" * 50)
         print(f"Step {i+1}: {step.step_description}")
@@ -184,18 +183,23 @@ def executor_node(state: State, **kwargs):
         response = agent.invoke(agent_input)
         structured_response = response["structured_response"]
 
-        # add components of response to state
-        state['step'].append(structured_response.step)
-        state['code'].append(structured_response.code)
-        state['execution_results'].append(structured_response.execution_results)
-        state['files_generated'].append(structured_response.files_generated)
-        state['assumptions'].append(structured_response.assumptions)
-        state['wants'].append(structured_response.wants)
-        state['misc'].append(structured_response.misc)
+        # store results of current step
+        outer_dict_key = f"Step {i}: {structured_response.step}"
+        results[outer_dict_key] = {} # set the step description (task) as the key and instantiate an inner dict
+        step_dict = results[outer_dict_key]
+        
+        step_dict['code'] = structured_response.code
+        step_dict['execution_results'] = structured_response.execution_results
+        step_dict['files_generated'] = structured_response.files_generated
+        step_dict['assumptions'] = structured_response.assumptions
+        step_dict['wants'] = structured_response.wants
+        step_dict['misc'] = structured_response.misc
 
         # print the response
         print("Response:")
         print(response)
+    
+    return {'executor_results': results}
 
 def main():
     pass
@@ -223,8 +227,6 @@ if __name__ == "__main__":
     executor_node = partial(executor_node, 
                             llm=llms['executor_llm'], 
                             prompt=prompts['executor_prompt'],
-                            data_dir=data_dir,
-                            df_heads=df_heads,
                             output_dir=executor_output_dir)
     
     # build graph
@@ -262,3 +264,7 @@ if __name__ == "__main__":
     print("="*50)
     print("Plan")
     print(result['plan'].pretty_print())
+    
+    print("="*50)
+    print("Plan")
+    print(result['executor_results'])
