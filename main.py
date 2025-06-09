@@ -18,6 +18,7 @@ from langchain_core.prompt_values import PromptValue
 from langgraph.types import RetryPolicy
 import pydantic_core
 from pydantic import BaseModel, Field
+from rich import print
 
 def get_llms(llm_config: dict):
     router_config = llm_config['router']
@@ -132,7 +133,8 @@ def planner_node(state: State, **kwargs):
             
     plan = response["structured_response"]
     return {'plan': plan, 'data_manifest': manifest, 'df_summaries': df_summaries}
-    
+
+
 
 def executor_node(state: State, **kwargs):
     """
@@ -145,7 +147,7 @@ def executor_node(state: State, **kwargs):
     
     data_manifest = state['data_manifest']
     df_summaries = state['df_summaries']
-    breakpoint()
+    
     _tools = [
         tools.load_dataset,
         tools.get_sheet_names,
@@ -163,43 +165,50 @@ def executor_node(state: State, **kwargs):
     system_prompt_str: str = system_prompt_template.invoke(input={}).to_string()
     system_prompt: SystemMessage = SystemMessage(content=system_prompt_str)
     
+    # instantiate checkpointer to save results of each step
+    from langgraph.checkpoint.memory import InMemorySaver
+    checkpointer = InMemorySaver()
+    config = {"configurable": {"thread_id" : "1"}}
+    
     # create the ReAct agent
     agent = create_react_agent(
         model=llm,
         tools=_tools,
         prompt=system_prompt,
-        response_format=(prompt, ExecutorOutput)
+        response_format=(prompt, ExecutorOutput),
+        checkpointer=checkpointer
     )
-    breakpoint()
+    
+    def process_step(results: dict, step_description, step_index, config):
+        agent_input = {"messages": [{"role": "user", "content": step_description}]}
+        response = agent.invoke(agent_input, config)
+        structured_response = response["structured_response"]
+
+        # store response in results_dict
+        outer_dict_key = f"Step {step_index}: {step_description}"
+        results[outer_dict_key] = {} # make each key a dict
+        inner_dict = results[outer_dict_key] # create reference to inner dict
+        
+        inner_dict['code'] = structured_response.code
+        inner_dict['execution_results'] = structured_response.execution_results
+        inner_dict['files_generated'] = structured_response.files_generated
+        inner_dict['assumptions'] = structured_response.assumptions
+        inner_dict['wants'] = structured_response.wants
+        inner_dict['misc'] = structured_response.misc    
+        
+        return results 
     
     results = {}
     for i, step in enumerate(plan.steps):
-        print("-" * 50)
-        print(f"Step {i+1}: {step.step_description}")
-        print("-" * 50)
-        
-        # create input for the agent
-        agent_input = {"messages": [{"role": "user", "content": step.step_description}]}
-        response = agent.invoke(agent_input)
-        structured_response = response["structured_response"]
+        step_description = step.step_description
+        results = process_step(results, step_description, i+1, config)
+        state['executor_results'] = results
 
-        # store results of current step
-        outer_dict_key = f"Step {i}: {structured_response.step}"
-        results[outer_dict_key] = {} # set the step description (task) as the key and instantiate an inner dict
-        step_dict = results[outer_dict_key]
+    return state
         
-        step_dict['code'] = structured_response.code
-        step_dict['execution_results'] = structured_response.execution_results
-        step_dict['files_generated'] = structured_response.files_generated
-        step_dict['assumptions'] = structured_response.assumptions
-        step_dict['wants'] = structured_response.wants
-        step_dict['misc'] = structured_response.misc
 
-        # print the response
-        print("Response:")
-        print(response)
-    
-    return {'executor_results': results}
+def aggregator(state: State, **kwargs):
+    pass
 
 def main():
     pass
@@ -257,14 +266,19 @@ if __name__ == "__main__":
 
     # invoke graph
     result = graph.invoke(input)
-    print("=" * 50)
-    print("Output:")
-    print(result)
+    # print("=" * 50)
+    # print("Output:")
+    # print(result)
 
     print("="*50)
     print("Plan")
     print(result['plan'].pretty_print())
     
     print("="*50)
-    print("Plan")
-    print(result['executor_results'])
+    print("Executor results")
+    print("-" * 50)
+    
+    # print executor results
+    for step, results in result['executor_results'].items():
+        print(step)
+        print(results)
