@@ -1,7 +1,8 @@
 import os
 import datetime
+from pathlib import Path
 
-from .helpers import load_text
+from utils.helpers import load_text
 from .load_env import load_env_vars
 
 
@@ -11,22 +12,22 @@ class Config:
         load_env_vars()
         
         # Set the base directory to the directory of this file
-        self.BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        self.BASE_DIR = Path(__file__).resolve().parent.parent
         
         # Path to llm config toml
-        self.LLM_CONFIG_PATH = os.path.join(self.BASE_DIR, 'config.toml')
+        self.LLM_CONFIG_PATH = Path(__file__) / 'config.toml'
         
         # Path to system messages
-        self.PROMPT_DIR = os.path.join(self.BASE_DIR, 'sys_messages')
-        self.ROUTER_PROMPT_PATH = os.path.join(self.PROMPT_DIR, 'router_message.txt')
-        self.PLANNER_PROMPT_PATH = os.path.join(self.PROMPT_DIR, 'planner_message.txt')
-        self.EXPLORER_PROMPT_PATH = os.path.join(self.PROMPT_DIR, 'explorer_message.txt')
-        self.ANALYZER_PROMPT_PATH = os.path.join(self.PROMPT_DIR, 'analyzer_message.txt')
-        self.EXECUTOR_PROMPT_PATH = os.path.join(self.PROMPT_DIR, 'executor_message.txt')
-        self.AGGREGATOR_PROMPT_PATH = os.path.join(self.PROMPT_DIR, 'aggregator_message.txt')
+        self.PROMPT_DIR = self.BASE_DIR / 'sys_messages'
+        self.ROUTER_PROMPT_PATH = self.PROMPT_DIR / 'router_message.txt'
+        self.PLANNER_PROMPT_PATH = self.PROMPT_DIR / 'planner_message.txt'
+        self.EXPLORER_PROMPT_PATH = self.PROMPT_DIR / 'explorer_message.txt'
+        self.ANALYZER_PROMPT_PATH = self.PROMPT_DIR / 'analyzer_message.txt'
+        self.EXECUTOR_PROMPT_PATH = self.PROMPT_DIR / 'executor_message.txt'
+        self.AGGREGATOR_PROMPT_PATH = self.PROMPT_DIR / 'aggregator_message.txt'
         
         # Path to user messages
-        self.EXPLORER_MESSAGE_PATH = os.path.join(self.PROMPT_DIR, 'explorer_user_message.txt')
+        self.EXPLORER_MESSAGE_PATH = self.PROMPT_DIR / 'explorer_user_message.txt'
         
         # Data directories
         # self.DATA_DIR = os.path.join(self.BASE_DIR, 'data')
@@ -52,18 +53,18 @@ class Config:
         # self.SELECTED_SOCIOECONO_SALMONELLA = os.path.join(self.SELECTED_DATA_DIR, 'sense-d_socioecono_salmonella_MO_2020.csv')
 
         # Set the output directories relative to the base directory
-        self.OUTPUT_DIR = os.path.join(self.BASE_DIR, 'output')
+        self.OUTPUT_DIR = self.BASE_DIR / 'output'
         os.makedirs(self.OUTPUT_DIR, exist_ok=True) # Create output directory if it doesn't exist
 
         # Create output directory for a specific run
         self.RUN_OUTPUT_DIR = self.create_output_directory_for_run()
         
         # Create output directories for all llms
-        self.PLANNER_OUTPUT_DIR = os.path.join(self.RUN_OUTPUT_DIR, 'planner')
-        self.EXPLORER_OUTPUT_DIR = os.path.join(self.RUN_OUTPUT_DIR, 'explorer')
-        self.ANALYZER_OUTPUT_DIR = os.path.join(self.RUN_OUTPUT_DIR, 'analyzer')
-        self.EXECUTOR_OUTPUT_DIR = os.path.join(self.RUN_OUTPUT_DIR, 'executor')
-        self.AGGREGATOR_OUTPUT_DIR = os.path.join(self.RUN_OUTPUT_DIR, 'aggregator')
+        self.PLANNER_OUTPUT_DIR = self.RUN_OUTPUT_DIR / 'planner'
+        self.EXPLORER_OUTPUT_DIR = self.RUN_OUTPUT_DIR / 'explorer'
+        self.ANALYZER_OUTPUT_DIR = self.RUN_OUTPUT_DIR / 'analyzer'
+        self.EXECUTOR_OUTPUT_DIR = self.RUN_OUTPUT_DIR / 'executor'
+        self.AGGREGATOR_OUTPUT_DIR = self.RUN_OUTPUT_DIR / 'aggregator'
         
         llm_output_dirs = [
             self.PLANNER_OUTPUT_DIR,
@@ -112,11 +113,11 @@ class Config:
         
         return llm_config
         
-    def create_output_directory_for_run(self):
+    def create_output_directory_for_run(self) -> Path:
         format = "%d-%m-%Y_%H-%M-%S"
         now = datetime.datetime.now()
         now_str = now.strftime(format)
-        RUN_OUTPUT_DIR = os.path.join(self.OUTPUT_DIR, f"output_{now_str}")
+        RUN_OUTPUT_DIR = self.OUTPUT_DIR / f"output_{now_str}"
         os.makedirs(RUN_OUTPUT_DIR, exist_ok=True)
         
         return RUN_OUTPUT_DIR
