@@ -57,8 +57,7 @@ def planner_node(state: State, **kwargs):
     plan = response["structured_response"]
     return {'plan': plan, 'data_manifest': manifest, 'df_summaries': df_summaries}
 
-
-if __name__ == "__main__":
+def test_planner():
     print("Running test code for planner.py")
     
     config = Config()
@@ -70,4 +69,5 @@ if __name__ == "__main__":
     response = planner_node(state=input, sys_prompt=system_prompt, llm=llm, config=config)
     print(response['plan'].pretty_print())
     
-    exit(0)
+if __name__ == "__main__":
+    test_planner()
