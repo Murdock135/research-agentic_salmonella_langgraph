@@ -15,7 +15,7 @@ class Config:
         self.BASE_DIR = Path(__file__).resolve().parent.parent
         
         # Path to llm config toml
-        self.LLM_CONFIG_PATH = Path(__file__) / 'config.toml'
+        self.LLM_CONFIG_PATH = self.BASE_DIR / 'config/config.toml'
         
         # Path to system messages
         self.PROMPT_DIR = self.BASE_DIR / 'sys_messages'
