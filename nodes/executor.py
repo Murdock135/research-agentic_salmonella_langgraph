@@ -10,6 +10,8 @@ def executor_node(state: State, **kwargs):
     """
     Execute the plan
     """
+    print("Executing plan to answer your query.")
+    
     plan: Plan = state['plan']
     llm = kwargs['llm']
     prompt = kwargs['prompt']

@@ -14,6 +14,7 @@ def planner_node(state: State, **kwargs):
     """
     Create a plan to answer the user query
     """
+    print("Making a plan to answer your query")
     
     sys_prompt = kwargs['sys_prompt']
     llm = kwargs['llm']
@@ -55,6 +56,8 @@ def planner_node(state: State, **kwargs):
     response = agent.invoke(agent_input)
             
     plan = response["structured_response"]
+    
+    print("Created plan")
     return {'plan': plan, 'data_manifest': manifest, 'df_summaries': df_summaries}
 
 def test_planner():

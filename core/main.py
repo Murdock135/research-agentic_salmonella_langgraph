@@ -93,25 +93,25 @@ def main():
 
     # invoke graph
     result = graph.invoke(input)
-    # print("=" * 50)
-    # print("Output:")
-    # print(result)
+    # # print("=" * 50)
+    # # print("Output:")
+    # # print(result)
 
-    print("="*50)
-    print("Plan")
-    print(result['plan'].pretty_print())
+    # print("="*50)
+    # print("Plan")
+    # print(result['plan'].pretty_print())
     
-    print("="*50)
-    print("Executor results")
-    print("-" * 50)
+    # print("="*50)
+    # print("Executor results")
+    # print("-" * 50)
     
-    # print executor results
-    for step, results in result['executor_results'].items():
-        print(step)
-        print(results)
+    # # print executor results
+    # for step, results in result['executor_results'].items():
+    #     print(step)
+    #     print(results)
         
-    # print final response
-    print(result['answer'])
+    # # print final response
+    # print(result['answer'])
 
 
 if __name__ == "__main__":
