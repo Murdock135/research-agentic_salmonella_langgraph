@@ -46,6 +46,7 @@ def main():
     llm_config = config.load_llm_config()
     llms = get_llms(llm_config)
     prompts = config.load_prompts()
+    
     # complete node definitions
     router_node_partial  = partial(router_node, llm=llms['router_llm'], prompt=prompts['router_prompt'])
     planner_node_partial = partial(planner_node, 
@@ -57,6 +58,10 @@ def main():
                             llm=llms['executor_llm'], 
                             prompt=prompts['executor_prompt'],
                             output_dir=executor_output_dir)
+    aggregator_node_partial = partial(aggregator_node,
+                                      llm=llms['aggregator_llm'],
+                                      prompt=prompts['aggregator_prompt']
+                                      )
     
     # build graph
     graph_init = StateGraph(state_schema=State)
@@ -70,11 +75,13 @@ def main():
             )
         )
     graph_init.add_node("executor", executor_node_partial)
+    graph_init.add_node("aggregator", aggregator_node_partial)
     
     graph_init.add_edge(START, "router")
     graph_init.add_conditional_edges("router", router_func, {True: "planner", False: END})
     graph_init.add_edge("planner", "executor")
-    graph_init.add_edge("executor", END)
+    graph_init.add_edge("executor", "aggregator")
+    graph_init.add_edge("aggregator", END)
     
     graph = graph_init.compile()
     
@@ -102,6 +109,9 @@ def main():
     for step, results in result['executor_results'].items():
         print(step)
         print(results)
+        
+    # print final response
+    print(result['answer'])
 
 
 if __name__ == "__main__":
