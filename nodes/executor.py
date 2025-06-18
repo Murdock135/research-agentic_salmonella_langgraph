@@ -61,7 +61,8 @@ def executor_node(state: State, **kwargs):
         results[outer_dict_key] = {} # make each key a dict
         inner_dict = results[outer_dict_key] # create reference to inner dict
         
-        inner_dict['code'] = structured_response.code
+        inner_dict['code'] = structured_response.code if structured_response.code is not None else ""
+        inner_dict['previously_done'] = structured_response.previously_done if structured_response.previously_done is not None else ""
         inner_dict['execution_results'] = structured_response.execution_results
         inner_dict['files_generated'] = structured_response.files_generated
         inner_dict['assumptions'] = structured_response.assumptions

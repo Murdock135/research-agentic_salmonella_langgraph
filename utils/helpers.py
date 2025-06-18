@@ -136,7 +136,7 @@ def get_df_summaries_from_manifest(manifest: dict[str, dict[str, str]]) -> dict[
                 
 
 def get_llm(model='gpt-4o', provider='openai'):
-    if provider=='openai':
+    if (provider=='openai') | (provider=='google_genai'):
         from langchain.chat_models import init_chat_model
         return init_chat_model(model=model, model_provider=provider)
     

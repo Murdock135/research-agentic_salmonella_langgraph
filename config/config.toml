@@ -1,26 +1,26 @@
 test_query = "What are the main factors contributing to salmonella rates in Missouri in a statistical sense?"
 
 [router]
-model = "o3-mini"
-provider = "openai"
+model = "gemini-2.0-flash"
+provider = "google_genai"
 
 [explorer]
-model = "o3-mini"
-provider = "openai"
+model = "gemini-2.0-flash"
+provider = "google_genai"
 
 [analyzer]
-model = "o3-mini"
-provider = "openai"
+model = "gemini-2.0-flash"
+provider = "google_genai"
 
 [planner]
-model = "o3-mini-2025-01-31"
-provider = "openai"
+model = "gemini-2.0-flash"
+provider = "google_genai"
 
 [executor]
-model = "o3-mini"
-provider = "openai"
+model = "gemini-2.0-flash"
+provider = "google_genai"
 
 [aggregator]
-model = "o3-mini"
-provider = "openai"
+model = "gemini-2.0-flash"
+provider = "google_genai"
 

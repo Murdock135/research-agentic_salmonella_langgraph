@@ -171,10 +171,10 @@ def find_csv_excel_files(root_dir: Path | str) -> list[Path]:
     return [f for f in root_dir.rglob("*") if f.suffix.lower() in exts]
 
 if __name__ == "__main__":
-    from .load_env import load_env_vars
+    from config.load_env import load_env_vars
     load_env_vars()
     
-    from .config import Config
+    from config.config import Config
     config = Config()
     
     repo_id = "zayanhugsAI/pulsenet"

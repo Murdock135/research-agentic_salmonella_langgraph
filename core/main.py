@@ -4,6 +4,7 @@ from utils import helpers
 
 from functools import partial
 import argparse
+import asyncio
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import RetryPolicy
@@ -15,6 +16,9 @@ from nodes.executor import executor_node
 from nodes.router import router_func, router_node
 from nodes.aggregator import aggregator_node
 from schemas.state import State
+
+# for type hints
+from langchain_core.messages import AIMessage
 
 def get_llms(llm_config: dict):
     from utils.helpers import get_llm
@@ -35,7 +39,7 @@ def get_llms(llm_config: dict):
         'aggregator_llm': get_llm(model=aggregator_config['model'], provider=aggregator_config['provider'])
     }
 
-def main():
+async def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Run the LangGraph application.")
     parser.add_argument('-t', '--test', action='store_true', help="Run in test mode with a predefined query.")
@@ -92,7 +96,12 @@ def main():
     }
 
     # invoke graph
-    result = graph.invoke(input)
+    # result = graph.invoke(input)
+    
+    # get results and stream them
+    async for chunk in graph.astream(input=input, stream_mode="updates"):
+        print(chunk)
+    
     # # print("=" * 50)
     # # print("Output:")
     # # print(result)
@@ -115,5 +124,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
 

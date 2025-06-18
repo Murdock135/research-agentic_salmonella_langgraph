@@ -17,3 +17,4 @@ if __name__=="__main__":
     print("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY"))
     print("LANGSMITH_API_KEY", os.getenv("LANGSMITH_API_KEY"))
     print("LANGSMITH PROJECT NAME", os.getenv("LANGSMITH_PROJECT"))
+    print("GOOGLE_API_KEY", os.getenv("GOOGLE_API_KEY"))
