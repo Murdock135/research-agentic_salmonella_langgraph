@@ -4,9 +4,9 @@
 
 from huggingface_hub import snapshot_download
 
-from ..load_env import load_env_vars
-from ..helpers import dump_dict_to_json
-from ..config import Config
+from config.load_env import load_env_vars
+from .helpers import dump_dict_to_json
+from config.config import Config
 import os
 
 REPO_ID = "zayanhugsAI"
