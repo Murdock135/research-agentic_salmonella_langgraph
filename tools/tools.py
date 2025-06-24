@@ -143,7 +143,6 @@ def get_cached_dataset_path(repo_id: str):
     if HF_TOKEN is None:
         raise ValueError("HF_TOKEN environment variable is not set. Please set it before running the script.")
     
-    breakpoint()
     # get path to cached dataset
     path = snapshot_download(repo_id=repo_id, repo_type="dataset", token=HF_TOKEN)
 
