@@ -1,0 +1,67 @@
+{
+  "questions": [
+    {
+      "text": "What is the current salmonella risk level in Boone county, and what actions should I take?",
+      "grade": 4,
+      "follow_ups": [
+        {
+          "text": "If high risk -> Could you provide me a social media blurb I can share on Facebook?",
+          "grade":1
+        }
+      ]
+    },
+    {
+      "text": "Is there a concerning pattern of salmonella occurrences or factors relevant to it that I should be aware of?",
+      "grade": 5,
+      "follow_ups": [
+        {
+          "text": "What conditions are most predictive of such pattern(s)?",
+          "grade": 3
+        },
+        {
+          "text": "Knowing this, what preventive measures should we take?",
+          "grade":3
+        },
+        {
+          "text": "If SENS-D detects elevated risk in my area, who are the key people I should contact and what basic information should I share with them?",
+          "grade": 2
+        }
+      ]
+    },
+    {
+      "text": "I am working on my plan of work for the upcoming year and trying to map out food safety trainings (for instance, I have three counties and would like to host trainings in each X amount of times a year). Are there any specific hotspots or specific locations that may be most beneficial for me to target?",
+      "grade": 4,
+      "follow_ups": []
+    },
+    {
+      "text": "Which demographic groups in our service area (Newton County, AR) face the highest combined risk from food insecurity and salmonella, and which intervention points offer the highest impact?",
+      "grade": 4,
+      "follow_ups": []
+    },
+    {
+      "text": "Predict the likely impact (households, geography, etc.) of a food emergency such as avian\u2011influenza\u2011driven shortages.",
+      "grade": 5,
+      "follow_ups": []
+    },
+    {
+      "text": "Can you predict any potential food crises by geography based on current funding levels, legislation, or other exogenous factors?",
+      "grade": 5,
+      "follow_ups": []
+    },
+    {
+      "text": "Are some serotypes more dangerous than others? Which ones cause the most outbreaks?",
+      "grade": 3,
+      "follow_ups": []
+    },
+    {
+      "text": "What regions are positively correlated with particular serotypes?",
+      "grade": 4,
+      "follow_ups": []
+    },
+    {
+      "text": "How different are the symptoms of various salmonella serotypes and which ones cause severe illnesses?",
+      "grade": 3,
+      "follow_ups": []
+    }
+  ]
+}
