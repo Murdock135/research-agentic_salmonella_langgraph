@@ -144,7 +144,10 @@ def get_cached_dataset_path(repo_id: str):
         raise ValueError("HF_TOKEN environment variable is not set. Please set it before running the script.")
     
     # get path to cached dataset
-    path = snapshot_download(repo_id=repo_id, repo_type="dataset", token=HF_TOKEN)
+    try:
+        path = snapshot_download(repo_id=repo_id, repo_type="dataset", token=HF_TOKEN, local_files_only=True)
+    except Exception as e:
+        raise FileNotFoundError(f"Dataset with repo_id {repo_id} not found in cache. Please download it first.") from e
 
     return Path(path)
 
@@ -177,8 +180,9 @@ if __name__ == "__main__":
     from config.config import Config
     config = Config()
     
-    repo_id = "zayanhugsAI/pulsenet"
+    repo_id = "zayanhugsAI/socioecono_salmonella"
     location = get_cached_dataset_path.invoke(repo_id)
+    breakpoint()
     data_files = find_csv_excel_files.invoke({'root_dir': location})
     
     print(data_files)

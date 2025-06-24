@@ -21,10 +21,7 @@ def planner_node(state: State, **kwargs):
     config: Config = kwargs['config']
     
     # load manifest
-    manifest_path = config.BASE_DIR / "data/data_manifest.json"
-    if not os.path.exists(manifest_path):
-        raise FileNotFoundError(f"No data manifest found in {manifest_path}.")
-    
+    manifest_path = config.DATA_MANIFEST_PATH    
     manifest: dict = helpers.load_data_manifest(manifest_path)
     manifest_str = str(manifest)
     
