@@ -2,7 +2,7 @@ import os
 import datetime
 from pathlib import Path
 
-from utils.helpers import load_text
+from utils.helpers import load_text, check_data_manifest
 from .load_env import load_env_vars
 
 
@@ -29,29 +29,9 @@ class Config:
         # Path to user messages
         self.EXPLORER_MESSAGE_PATH = self.PROMPT_DIR / 'explorer_user_message.txt'
         
-        # Data directories
-        # self.DATA_DIR = os.path.join(self.BASE_DIR, 'data')
-        # self.RAW_DATA_DIR = os.path.join(self.DATA_DIR, 'raw')
-        # self.PROCESSED_DATA_DIR = os.path.join(self.DATA_DIR, 'processed')
-        # self.SQL_DATA_DIR = os.path.join(self.DATA_DIR, 'SQL version')
-
-        # Specific Data directories
-        # self.MMG_DATA_DIR = os.path.join(self.RAW_DATA_DIR, 'mmg')
-        # self.PN_DATA_DIR = os.path.join(self.RAW_DATA_DIR, 'pulsenet')
-        # self.SVI_DATA_DIR = os.path.join(self.RAW_DATA_DIR, 'social_vulnerability_index')
-        # self.RAW_POULTRY_DATA_DIR = os.path.join(self.RAW_DATA_DIR, 'raw_poultry')
-        # self.CENSUS_DATA_DIR = os.path.join(self.RAW_DATA_DIR, 'census')
-        # self.NORS_DATA_DIR = os.path.join(self.RAW_DATA_DIR, 'nors')
-        # self.FOODNET_DATA_DIR = os.path.join(self.RAW_DATA_DIR, 'foodnet')
-        # self.SOCIOECONO_SALMONELLA_DIR = os.path.join(self.PROCESSED_DATA_DIR, 'salmonella_population')
-
-        # Selected data directories
-        # self.SELECTED_DATA_DIR = os.path.join(self.BASE_DIR, 'selected_data')
-        # self.SELECTED_MMG_DIR = os.path.join(self.SELECTED_DATA_DIR, 'mmg')
-        # self.SELECTED_NORS_DIR = os.path.join(self.SELECTED_DATA_DIR, 'nors')
-        # self.SELECTED_SVI_DIR = os.path.join(self.SELECTED_DATA_DIR, 'svi')
-        # self.SELECTED_SOCIOECONO_SALMONELLA = os.path.join(self.SELECTED_DATA_DIR, 'sense-d_socioecono_salmonella_MO_2020.csv')
-
+        # Path to data manifest
+        self.DATA_MANIFEST_PATH = self.BASE_DIR / 'data/data_manifest.json'
+        
         # Set the output directories relative to the base directory
         self.OUTPUT_DIR = self.BASE_DIR / 'output'
         os.makedirs(self.OUTPUT_DIR, exist_ok=True) # Create output directory if it doesn't exist
@@ -122,19 +102,6 @@ class Config:
         
         return RUN_OUTPUT_DIR
     
-    def load_data_manifest(self, path_to_manifest_file):
-        """
-        Load a data manifest file and return its contents.
-        """
-        import json
-        
-        if not os.path.exists(path_to_manifest_file):
-            raise FileNotFoundError(f"Manifest file not found: {path_to_manifest_file}")
-        
-        with open(path_to_manifest_file, 'r') as f:
-            manifest: dict = json.load(f)
-        
-        return manifest
     
     def get_data_repoIDs(self, path_to_manifest_file):
         """

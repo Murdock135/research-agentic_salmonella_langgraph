@@ -252,6 +252,10 @@ def load_data_manifest(path_to_manifest_file) -> dict[str, dict[str, str]]:
         manifest: dict = json.load(f)
     
     return manifest
+    
+def check_data_manifest(path_to_manifest_file):
+    pass
+
 
 def get_data_repoIDs(path_to_manifest_file):
     """
@@ -265,7 +269,7 @@ def get_data_repoIDs(path_to_manifest_file):
 # Tests
 if __name__ == "__main__":
     import os
-    from .config import Config
+    from config.config import Config
     
     config = Config()
     manifest_path = os.path.join(config.BASE_DIR, "data_manifest.json")

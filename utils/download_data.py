@@ -4,9 +4,9 @@
 
 from huggingface_hub import snapshot_download
 
-from ..load_env import load_env_vars
-from ..helpers import dump_dict_to_json
-from ..config import Config
+from config.load_env import load_env_vars
+from .helpers import dump_dict_to_json
+from config.config import Config
 import os
 
 REPO_ID = "zayanhugsAI"
@@ -15,7 +15,7 @@ datasets = [
     "naco",
     "nors",
     "pulsenet",
-    "socioecono_salmonella",
+    # "socioecono_salmonella",
     "map_the_meal_gap",
     "social_vulnerability_index"
 ]
@@ -30,7 +30,9 @@ def download_dataset_repo(repo_id, dataset_name, token, output_dir=None):
         repo_id (str): The repository ID on Hugging Face Hub.
         dataset_name (str): The name of the dataset to download.
         token (str): The Hugging Face token for authentication.
-        output_dir (str): The directory where the dataset will be saved.
+        output_dir (str) [Optional]: The directory where the dataset will be saved. If
+        output_dir is not provided, the dataset will be saved in the default cache directory
+        and this is recommended
     """
     path = snapshot_download(repo_id=f"{repo_id}/{dataset_name}", repo_type="dataset", local_dir=output_dir if output_dir is not None else None, token=token)
     return path
