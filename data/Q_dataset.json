@@ -34,9 +34,14 @@
       "follow_ups": []
     },
     {
-      "text": "Which demographic groups in our service area (Newton County, AR) face the highest combined risk from food insecurity and salmonella, and which intervention points offer the highest impact?",
+      "text": "Which specific demographic groups in our service area face the highest combined risk from food insecurity and Salmonella exposure?",
       "grade": 4,
-      "follow_ups": []
+      "follow_ups": [
+        {
+          "text": "How do detection pattern trends correlate with our county's social vulnerability indicators, and which intervention points offer the highest impact potential?",
+          "grade": 5
+        }
+      ]
     },
     {
       "text": "Predict the likely impact (households, geography, etc.) of a food emergency such as avian\u2011influenza\u2011driven shortages.",
@@ -49,19 +54,39 @@
       "follow_ups": []
     },
     {
-      "text": "Are some serotypes more dangerous than others? Which ones cause the most outbreaks?",
-      "grade": 3,
-      "follow_ups": []
+      "text": "Map out supply opportunities and routing for independent farms to food banking distribution points",
+      "grade": -1
     },
     {
-      "text": "What regions are positively correlated with particular serotypes?",
-      "grade": 4,
-      "follow_ups": []
+      "text": "Are some serotypes more dangerous than others? Which ones cause the most outbreaks?",
+      "grade": 3,
+      "follow_ups": [
+        {
+          "text": "What regions are positively correlated with particular serotypes?",
+          "grade": 4
+        },
+        {
+          "text": "What is the frequency of outbreaks of each serotype?",
+          "grade": 1
+        }
+      ]
     },
     {
       "text": "How different are the symptoms of various salmonella serotypes and which ones cause severe illnesses?",
       "grade": 3,
       "follow_ups": []
+    },
+    {
+      "text": "Which salmonella serotypes cause food poisoning and which ones cause typhoid fever?",
+      "grade": 2
+    },
+    {
+      "text": "What is the correlation of different salmonella serotypes with weather and storage conditions? Are there any seasonal trends",
+      "grade": 3
+    },
+    {
+      "text": "Which serotypes are associated with the human samples vs environmental samples?",
+      "grade": 3
     }
   ]
 }
