@@ -78,15 +78,63 @@
     },
     {
       "text": "Which salmonella serotypes cause food poisoning and which ones cause typhoid fever?",
-      "grade": 2
+      "grade": 2,
+      "follow_ups": []
     },
     {
       "text": "What is the correlation of different salmonella serotypes with weather and storage conditions? Are there any seasonal trends",
-      "grade": 3
+      "grade": 3,
+      "follow_ups": []
     },
     {
       "text": "Which serotypes are associated with the human samples vs environmental samples?",
-      "grade": 3
+      "grade": 3,
+      "follow_ups": []
+    },
+    {
+      "text": "Can you identify a climatic region in the USA that has the highest Salmonella rate, and what is its average temperature of that region?",
+      "grade": 3,
+      "follow_ups": []
+    },
+    {
+        "text": "What does SENS-D predict will be our biggest Salmonella risk over the next 10 weeks?",
+        "grade": 5,
+        "follow_ups": []
+    },
+    {
+        "text": "Is there a correlation between average temperature and Salmonella rates across the different U.S. climatic regions?",
+        "grade": 2,
+        "follow_ups": []
+    },
+    {
+        "text": "Which states are potential hotspots for Salmonella outbreaks and why?",
+        "grade": 2,
+        "follow_ups": [
+            {
+                "text": "Given the identified hotspots, which neighboring states are at risk of becoming hotspots?",
+                "grade": 1
+            }
+        ]
+    },
+    {
+        "text": "Which Salmonella serotypes are more prevalent in states with high average temperatures and which in cooler states? Is there a trend of specific serotypes in areas with similar conditions?",
+        "grade": 2,
+        "follow_ups": []
+    },
+    {
+        "text": "How do you explain the distribution pattern of FSIS facilities, reported Salmonella case numbers, and temperature variations?",
+        "grade": 3,
+        "follow_ups": []
+    },
+    {
+        "text": "Is Salmonella present or absent in the sample?",
+        "grade": 1,
+        "follow_ups": []
+    },
+    {
+        "text": "What is the Salmonella level—accurate and repeatable quantification within a range of 1 to 1000 cfu/g with variation within 10 cfu?",
+        "grade": 3,
+        "follow_ups": []
     }
   ]
 }
