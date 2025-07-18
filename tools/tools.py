@@ -173,6 +173,13 @@ def find_csv_excel_files(root_dir: Path | str) -> list[Path]:
     exts = {'.csv', '.xls', '.xlsx'}
     return [f for f in root_dir.rglob("*") if f.suffix.lower() in exts]
 
+@tool
+def get_weather(location):
+    """
+    Get the 
+    """
+    pass
+
 if __name__ == "__main__":
     from config.load_env import load_env_vars
     load_env_vars()
