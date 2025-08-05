@@ -73,3 +73,6 @@ class agentic_system:
         input_data = {"query": user_query}
         async for chunk in self.graph.astream(input=input_data, stream_mode="updates"):
             print(chunk)
+
+    def save_results(self):
+        pass

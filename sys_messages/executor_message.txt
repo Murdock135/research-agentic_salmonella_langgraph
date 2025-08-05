@@ -27,7 +27,7 @@ Context:
 - Summaries about the datasets:
 {df_summaries}
 
-If you need to generate files, store them in {output_dir}.
+If you need to generate files, store them in {output_dir} by using the 'write_file' filesystem tool.
 
 Rules:
 - DO NOT create any synthetic data or placeholder data or column.
