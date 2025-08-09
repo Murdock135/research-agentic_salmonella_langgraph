@@ -12,7 +12,7 @@ from langgraph.types import RetryPolicy
 import pydantic_core
 from rich import print
 
-class agentic_system:
+class Agentic_system:
     def __init__(self, config: Config):
         self.config = config
         self.llm_config = config.load_llm_config()

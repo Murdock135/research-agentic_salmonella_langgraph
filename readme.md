@@ -38,7 +38,6 @@ Go to https://huggingface.co/zayanhugsAI, click on the relevant datasets and req
 # Usage
 
 > **Prerequisites**
->  
 > - Ensure you have python 3.13.3 installed.
 > - Ensure a `config.toml` file exists in the `config` directory. See [Configuration](#configuration)
 > - Ensure that you have the API keys for every provider defined within `config.toml`. See [Setting API keys](#setting-api-keys)

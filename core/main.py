@@ -5,7 +5,7 @@ from utils import helpers
 import argparse
 import asyncio
 
-from .system import agentic_system
+from .system import Agentic_system
 
 
 
@@ -18,5 +18,5 @@ if __name__ == "__main__":
 
     user_query = helpers.get_user_query(args=args, config=config.load_llm_config())
 
-    agentic_system_instance = agentic_system(config=config)
+    agentic_system_instance = Agentic_system(config=config)
     asyncio.run(agentic_system_instance.run(user_query=user_query))
