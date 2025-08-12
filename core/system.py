@@ -44,6 +44,7 @@ class Agentic_system:
         self.planner_node_partial = partial(planner_node, llm=self.llms['planner_llm'], sys_prompt=self.prompts['planner_prompt'], config=self.config)
         self.executor_node_partial = partial(executor_node, llm=self.llms['executor_llm'], prompt=self.prompts['executor_prompt'], output_dir=self.config.EXECUTOR_OUTPUT_DIR)
         self.aggregator_node_partial = partial(aggregator_node, llm=self.llms['aggregator_llm'], prompt=self.prompts['aggregator_prompt'])
+        self.saver_node_partial = partial(saver_node, save_dir=self.config.RUN_OUTPUT_DIR)
     
     def _build_graph(self):
         graph_init = StateGraph(state_schema=State)
@@ -58,12 +59,14 @@ class Agentic_system:
             )
         graph_init.add_node("executor", self.executor_node_partial)
         graph_init.add_node("aggregator", self.aggregator_node_partial)
+        graph_init.add_node("saver", self.saver_node_partial)
         
         graph_init.add_edge(START, "router")
         graph_init.add_conditional_edges("router", router_func, {True: "planner", False: END})
         graph_init.add_edge("planner", "executor")
         graph_init.add_edge("executor", "aggregator")
-        graph_init.add_edge("aggregator", END)
+        graph_init.add_edge("aggregator", "saver")
+        graph_init.add_edge("saver", END)
         
         self.graph = graph_init.compile()
 
