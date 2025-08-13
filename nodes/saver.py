@@ -12,9 +12,14 @@ def pydantic_encoder(obj):
     raise TypeError(f"Object of type {__obj.__class__.__name__} is not JSON serializable")
 
 def saver_node(state: State, save_dir: Path):
-    # convert state into a json-serializable 
-    # breakpoint()
-    
+    # save entire trace
     save_path = save_dir / 'trace.json'
     with open(save_path, 'w') as file:
         json.dump(state, file, indent=4, default=pydantic_encoder)
+
+    # save only query and final answer
+    keys = ['query', 'answer']
+    state_concise = {key:state[key] for key in keys if key in state}
+    save_path = save_dir / 'final_answer.json'
+    with open(save_path, 'w') as file:
+        json.dump(state_concise, file, indent=4, default=pydantic_encoder)
