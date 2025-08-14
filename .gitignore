@@ -42,3 +42,6 @@ logs/
 *.egg-info/
 dist/
 build/
+
+# Docker jrelated files
+docker-build.sh

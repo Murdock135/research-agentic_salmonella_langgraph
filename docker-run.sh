@@ -1,0 +1,1 @@
+docker run -it --rm -v ~/.secrets:/root/.secrets agentic_test /bin/bash
