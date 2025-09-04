@@ -66,8 +66,8 @@ def main():
             "repo_id": f"{REPO_ID}/{dataset}"
         }
 
-    project_root = config.BASE_DIR
-    dump_dict_to_json(manifest, project_root + "/data_manifest.json")
+    data_manifest_path = config.DATA_MANIFEST_PATH
+    dump_dict_to_json(manifest, data_manifest_path)
 
 if __name__ == "__main__":
     main()
