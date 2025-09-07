@@ -1,22 +1,16 @@
-# syntax=docker/dockerfile:1
-# escape=`
+FROM python:3.12-slim-trixie
 
-# Use a slim Python base image
-FROM python:3.13-slim AS base
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install pip (should already be present) and uv
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir uv
+ADD https://astral.sh/uv/0.8.15/install.sh /uv-installer.sh
+RUN sh /uv-installer.sh && rm /uv-installer.sh
 
-# Set work directory
-WORKDIR /SPARQ
+ENV PATH="/root/.local/bin:$PATH"
 
-# Copy project files
-COPY . /SPARQ
+# Copy the project into the image
 
-# Install project dependencies from pyproject.toml using uv
-# RUN uv pip install -r pyproject.toml --system
-
-
-# Default command (optional)
-# CMD ["uv", "run", "-m", "core.main", "-t"]
