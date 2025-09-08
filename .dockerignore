@@ -1,15 +1,8 @@
-# Exclude VCS metadata
+*.bak
 .git
-
-# Exclude local environments and Python caches
 .venv
-__pycache__/
-*.py[cod]
-
-# Exclude local env files and run outputs
 .env
+.env
+Dockerfile
+.dockerignore
 output/
-
-# Misc editor/system noise
-.ipynb_checkpoints/
-.DS_Store
