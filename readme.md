@@ -5,26 +5,24 @@
 
 1. Clone this repo with git or download as a zip file and then extract it.
 2. In your terminal, 'cd' into the project folder.
-3. Install python 3.13.3 if you haven't already.
-4. Create a virtual environment with your preferred *virtual environment manager* (python, pyenv, conda, etc.). For example, with python you can use the following code in your terminal (make sure you 'cd' into the project folder.)
+3. Install Python 3.13.3 if you haven't already.
 
-```
-python3 -m venv .venv 
-```
+Option A: Using uv (recommended)
+- Install uv (one-time):
+  - macOS/Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Install dependencies and create `.venv`:
+  - `uv sync`
+- You can run commands through uv without activating the venv:
+  - `uv run -m utils.download_data`
+  - `uv run -m core.main -t`
 
-Explanation: '-m' is a flag and tells python to run the 'venv' script (came with the python installation) as a module. The module needs your preferred name for the virtual environment as a parameter. Here, we're using the name '.venv'
-
-3. Activate the virtual environment. If you used python to create the virtual environent like in the previous step, you can use,
-
-```
-source .venv/bin/activate
-```
-
-4. Install packages with
-
-```
-pip install -r requirements.txt
-```
+Option B: Using Python + pip
+- Create a virtual environment (example using built-in venv):
+  - `python3 -m venv .venv`
+- Activate the virtual environment:
+  - `source .venv/bin/activate`
+- Install packages:
+  - `pip install -r requirements.txt`
 
 # Get access to the data
 Go to https://huggingface.co/zayanhugsAI, click on the relevant datasets and request access. The datasets used in this project are - 
@@ -45,23 +43,39 @@ Go to https://huggingface.co/zayanhugsAI, click on the relevant datasets and req
 
 First download the data using the following command.
 
-```
-python -m utils.download_data
-```
+Using uv: `uv run -m utils.download_data`
 
-Then, run the agentic system using a test query already defined (in `config/config.toml`) using
+Using Python: `python -m utils.download_data`
 
-```
-python -m core.main -t
-```
+Then, run the agentic system using a test query already defined (in `config/config.toml`)
 
-If you want to use your own query, simply use
+- Using uv: `uv run -m core.main -t`
+- Using Python: `python -m core.main -t`
 
-```
-python -m core.main
-```
+If you want to use your own query:
+
+- Using uv: `uv run -m core.main`
+- Using Python: `python -m core.main`
 
 If you have tracing enabled (see [enable tracing](#enable-tracing-optional)), you will see the trace of the system in your langsmith account.
+
+## Docker: Dev and Production
+
+Prefer `uv` for running the project in development. A minimal production image runs the app directly with Python to keep size small.
+
+- Quick start (production):
+  - Build: `docker build -t agentic_test .`
+  - Test query with secrets via `.env`: `docker run -it --rm --env-file .env agentic_test python -m core.main -t`
+  - Or mount your secrets dir: `docker run -it --rm -v ~/.secrets:/root/.secrets agentic_test python -m core.main -t`
+  - Custom query: `docker run -it --rm --env-file .env agentic_test python -m core.main`
+
+- Quick start (development):
+  - Build: `docker build --target dev -t agentic_dev .`
+  - Run with live code mount: `docker run -it --rm -v "$PWD:/app" --env-file .env agentic_dev`
+  - Inside container (first time): `uv sync --frozen`
+  - Run the app: `uv run -m core.main -t`
+
+See docs/docker_usage.md for detailed workflows, how to start/exit containers, use Git (host vs container), and VS Code attach instructions. Secrets can be provided via `.env` or `~/.secrets/.llm_apis`.
 
 ## Enable tracing (Optional)
 
@@ -129,6 +143,8 @@ OPENAI_API_KEY=<YOUR KEY HERE>
 
 
 > If you want to inspect the related code, `config/load_env.py` is responsible for looking for API keys
+
+When running with Docker, either pass `--env-file .env` to `docker run` or mount your `~/.secrets` directory as shown above. The `.env` file is intentionally excluded from the image via `.dockerignore` so your secrets aren’t baked into the image.
 
 # FAQ
 

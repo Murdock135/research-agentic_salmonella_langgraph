@@ -1,35 +1,81 @@
+# syntax=docker/dockerfile:1.7
 
-ARG UV_VERSION=0.8.15
-ARG PYTHON_VERSION=3.12
+ARG PYTHON_VERSION=3.13.3
 
-FROM python:${PYTHON_VERSION}-slim-trixie
+# ---------- uv base (tools only) ----------
+FROM python:${PYTHON_VERSION}-slim AS uv-base
+WORKDIR /app
+ENV UV_LINK_MODE=copy \
+  PATH="/root/.local/bin:${PATH}"
 
-# optimizations
-# 1. compile bytecode for production time
-# 2. use UV_LINK_MODE=copy to copy packages from the wheel to the site packages directory. Note that the cache and sync target are on separate file systems.
-ENV UV_COMPILE_BYTECODE=1
-ENV UV_LINK_MODE=copy
-
-RUN apt-get update && apt-get install -y \
-  build-essential \
-  libpq-dev \
-  curl \
-  ca-certificates \
+# Minimal system deps for building wheels; add more if required
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  curl ca-certificates build-essential \
   && rm -rf /var/lib/apt/lists/*
 
-ADD https://astral.sh/uv/${UV_VERSION}/install.sh /uv-installer.sh
+# Download the latest installer
+ADD https://astral.sh/uv/install.sh /uv-installer.sh
+
+# Run the installer then remove it
 RUN sh /uv-installer.sh && rm /uv-installer.sh
 
-ENV PATH="/root/.local/bin:$PATH"
+# Ensure the installed binary is on the `PATH`
+ENV PATH="/root/.local/bin/:$PATH"
 
-# Copy packages from cache into a 'cache mount'
-RUN --mount=type=cache, target=/root/.cache/uv \
-  uv sync
+# ---------- deps (prod) ----------
+FROM uv-base AS deps-prod
+WORKDIR /app
 
-# Install python and add to cache
-RUN --mount=type=cache, target=/root/.cache/uv \
-  uv python install
+# Cache-friendly: copy only manifests first
+COPY pyproject.toml uv.lock ./
 
-# Copy the project into the image
+# Install production dependencies into a project-local venv
+RUN --mount=type=cache,target=/root/.cache/uv bash -euxo pipefail -c '\
+  if [ -f pyproject.toml ]; then \
+  uv sync --frozen --no-dev; \
+  elif [ -f requirements.txt ]; then \
+  uv venv && . .venv/bin/activate && pip install --no-cache-dir -r requirements.txt; \
+  else \
+  echo "No pyproject.toml or requirements.txt found" >&2; exit 1; \
+  fi'
 
+# ---------- deps (dev) ----------
+FROM deps-prod AS deps-dev
+# Install dev groups for local development/testing
+RUN --mount=type=cache,target=/root/.cache/uv \
+  if [ -f pyproject.toml ]; then uv sync --frozen; fi
+
+# ---------- build (optional compile) ----------
+FROM deps-prod AS build
+WORKDIR /app
+COPY . .
+# Optional: precompile app bytecode (usually skip unless measured benefit)
+# RUN . .venv/bin/activate && python -m compileall -q -j 0 /app
+
+# ---------- runtime (prod) ----------
+FROM python:${PYTHON_VERSION}-slim AS runtime
+ENV PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1
+
+# Create non-root user (Debian/Ubuntu)
+RUN groupadd -g 10001 app && useradd -u 10001 -g app -m -s /usr/sbin/nologin -c "App user" app
+WORKDIR /app
+
+# Copy built app (includes .venv and source)
+COPY --from=build /app /app
+
+# Ensure writable workspace for the app user (e.g., creating output/)
+RUN chown -R app:app /app
+
+ENV PATH="/app/.venv/bin:${PATH}"
+USER app
+CMD ["python", "-m", "core.main"]
+
+# ---------- dev (developer image) ----------
+FROM deps-dev AS dev
+ENV PYTHONUNBUFFERED=1
+WORKDIR /app
+# Copy source; override with -v "$PWD:/app" for live editing
+COPY . .
+CMD ["bash"]
 
