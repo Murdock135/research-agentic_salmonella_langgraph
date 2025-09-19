@@ -39,7 +39,22 @@ Quick Start (Development)
 - Build the dev image (includes dev dependencies):
   - `docker build --target dev -t agentic_dev .`
 - Run with your local code mounted (live editing):
-  - `docker run -it --rm -v "$PWD:/app" --env-file .env agentic_dev`
+  - If using only `.env` file, you can use 
+
+  ```bash
+  docker run -it --rm -v "$PWD:/app" --env-file .env agentic_dev
+  ```
+
+  - If using only `~/.secrets/.llm_apis`, mount that as well
+  ```bash
+  docker run -it --rm -v "~/.secrets/.llm_apis" -v "$PWD:/app" agentic_dev 
+  ```
+
+  - If using both a `.env` file and a secrets file, you can use both with
+  ```bash
+  docker run -it --rm -v "~/.secrets/.llm_apis" -v "$PWD:/app" --env-file .env agentic_dev
+  ```
+
 - When mounting the project, your host files overlay the image’s `/app`. If the `.venv` in the image is hidden by your host mount, run `uv sync --frozen` inside the container once to (re)create a working `.venv`.
 
 Secrets and configuration
