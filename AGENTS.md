@@ -16,7 +16,7 @@
 - Run test query: `uv run -m core.main -t` (uses `config/config.toml` test query).
 - Run custom query: `uv run -m core.main` (prompts for input).
 - Download datasets: `uv run -m utils.download_data` (requires HF access/token).
-- Docker (optional): `docker build -t agentic_test .` then `./docker-run.sh`.
+- Docker (optional): see `docs/docker_usage.md` for build/run commands and workflows.
 - Tests (if added): `uv run -m pytest -q`.
 
 ## Coding Style & Naming Conventions

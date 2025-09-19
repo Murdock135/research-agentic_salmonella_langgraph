@@ -1,5 +1,7 @@
 # Setup
 
+Docs index: see `docs/README.md` for links to Docker docs.
+
 > **Recommendation**
 > I highly recommend using a UNIX based OS or VM to run this project. If you're on windows, install [WSL (Windows Subsystem for linux)](https://learn.microsoft.com/en-us/windows/wsl/install) and run it in there (I recommend Ubuntu).
 
@@ -61,21 +63,24 @@ If you have tracing enabled (see [enable tracing](#enable-tracing-optional)), yo
 
 ## Docker: Dev and Production
 
-Prefer `uv` for running the project in development. A minimal production image runs the app directly with Python to keep size small.
+Prefer `uv` for development; the production image runs the app directly with Python to keep it small.
 
-- Quick start (production):
-  - Build: `docker build -t agentic_test .`
-  - Test query with secrets via `.env`: `docker run -it --rm --env-file .env agentic_test python -m core.main -t`
-  - Or mount your secrets dir: `docker run -it --rm -v ~/.secrets:/root/.secrets agentic_test python -m core.main -t`
-  - Custom query: `docker run -it --rm --env-file .env agentic_test python -m core.main`
+- Build images:
+  - Production: `docker build -t agentic_test .`
+  - Development: `docker build --target dev -t agentic_dev .`
 
-- Quick start (development):
-  - Build: `docker build --target dev -t agentic_dev .`
-  - Run with live code mount: `docker run -it --rm -v "$PWD:/app" --env-file .env agentic_dev`
-  - Inside container (first time): `uv sync --frozen`
-  - Run the app: `uv run -m core.main -t`
+- Helpers:
+  - Dev: `scripts/docker_dev.sh` (prompts for secrets; mounts code and HF cache)
+  - Prod: `scripts/docker_prod.sh` (prompts for secrets; mounts HF cache; optional output mount)
 
-See docs/docker_usage.md for detailed workflows, how to start/exit containers, use Git (host vs container), and VS Code attach instructions. Secrets can be provided via `.env` or `~/.secrets/.llm_apis`.
+- First-time setup for scripts:
+  - `chmod +x scripts/docker_*.sh`
+
+- Windows note:
+  - Run scripts via Bash (WSL or Git Bash), e.g.: `bash scripts/docker_dev.sh`
+
+For run workflows, mounts, and troubleshooting, see `docs/docker_usage.md`.
+For build-stage layout and rationale, see `docs/dockerfile_design.md`.
 
 ## Enable tracing (Optional)
 
@@ -144,7 +149,7 @@ OPENAI_API_KEY=<YOUR KEY HERE>
 
 > If you want to inspect the related code, `config/load_env.py` is responsible for looking for API keys
 
-When running with Docker, either pass `--env-file .env` to `docker run` or mount your `~/.secrets` directory as shown above. The `.env` file is intentionally excluded from the image via `.dockerignore` so your secrets aren’t baked into the image.
+When running with Docker, either pass `--env-file .env` to `docker run` or mount your `~/.secrets` directory; see `docs/docker_usage.md` for examples. The `.env` file is intentionally excluded from the image via `.dockerignore` so your secrets aren’t baked into the image.
 
 # FAQ
 
