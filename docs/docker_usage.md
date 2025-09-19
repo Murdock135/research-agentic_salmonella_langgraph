@@ -22,8 +22,10 @@ Production Usage
 - Run with your own query:
   - `.env`: `docker run -it --rm --env-file .env agentic_test python -m core.main`
 - Persist outputs to the host:
-  - Mount the project root: `docker run -it --rm -v "$PWD:/app" --env-file .env agentic_test python -m core.main -t`
-  - Or mount just the output dir: `docker run -it --rm -v "$PWD/output:/app/output" --env-file .env agentic_test python -m core.main -t`
+  - With `.env`, mount project root: `docker run -it --rm -v "$PWD:/app" --env-file .env agentic_test python -m core.main -t`
+  - With secrets dir, mount project + secrets: `docker run -it --rm -v "$PWD:/app" -v ~/.secrets:/root/.secrets agentic_test python -m core.main -t`
+  - Or mount just the output dir with `.env`: `docker run -it --rm -v "$PWD/output:/app/output" --env-file .env agentic_test python -m core.main -t`
+  - Or mount just the output dir with secrets dir: `docker run -it --rm -v "$PWD/output:/app/output" -v ~/.secrets:/root/.secrets agentic_test python -m core.main -t`
 - Start and exit:
   - Start: any of the `docker run ...` commands above.
   - Exit: Ctrl+C for foreground runs, or `docker stop <container>` for detached runs.
@@ -35,17 +37,19 @@ Notes on uv vs python in production
 Development Workflow
 - Build dev image: `docker build --target dev -t agentic_dev .`
 - Ephemeral interactive session with live editing:
-  - `docker run -it --rm -v "$PWD:/app" --env-file .env agentic_dev`
+  - Using `.env`: `docker run -it --rm -v "$PWD:/app" --env-file .env agentic_dev`
+  - Using secrets dir: `docker run -it --rm -v "$PWD:/app" -v ~/.secrets:/root/.secrets agentic_dev`
   - Inside the container (first run when mounting host code):
     - `uv sync --frozen`
     - `uv run -m core.main -t`
 - Persistent background container (good for VS Code attach):
-  - Start: `docker run -d --name agent_dev -v "$PWD:/app" --env-file .env agentic_dev sleep infinity`
+  - Start with `.env`: `docker run -d --name agent_dev -v "$PWD:/app" --env-file .env agentic_dev sleep infinity`
+  - Start with secrets dir: `docker run -d --name agent_dev -v "$PWD:/app" -v ~/.secrets:/root/.secrets agentic_dev sleep infinity`
   - Exec a shell: `docker exec -it agent_dev bash`
   - Stop/Remove: `docker stop agent_dev && docker rm agent_dev`
-- Start and exit:
-  - Start: one of the `docker run ...` variants above.
-  - Exit: `exit` or Ctrl+D from the interactive shell; or stop/remove the named container as shown.
+  - Start and exit:
+    - Start: one of the `docker run ...` variants above.
+    - Exit: `exit` or Ctrl+D from the interactive shell; or stop/remove the named container as shown.
 
 Secrets and Configuration
 - App loads env vars from both locations (in order):
@@ -65,7 +69,8 @@ Git Options
 VS Code
 - Best experience: use the “Dev Containers” (aka “Remote - Containers”) extension.
 - Option A: Attach to a running dev container
-  - Start a persistent container: `docker run -d --name agent_dev -v "$PWD:/app" --env-file .env agentic_dev sleep infinity`
+  - Start a persistent container (.env): `docker run -d --name agent_dev -v "$PWD:/app" --env-file .env agentic_dev sleep infinity`
+  - Or with secrets dir: `docker run -d --name agent_dev -v "$PWD:/app" -v ~/.secrets:/root/.secrets agentic_dev sleep infinity`
   - In VS Code: Command Palette → “Dev Containers: Attach to Running Container…” → select `agent_dev`.
   - Open `/app`, then use the VS Code terminal:
     - `uv sync --frozen` (first time)
@@ -90,4 +95,3 @@ Troubleshooting
   - Use dev image for `uv` commands, or run the production image’s default app command.
 - Permission errors writing to `output/`:
   - Ensure you run as the provided non-root user in prod; bind-mount project root or output dir to the host.
-
