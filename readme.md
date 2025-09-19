@@ -66,7 +66,7 @@ If you have tracing enabled (see [enable tracing](#enable-tracing-optional)), yo
 Prefer `uv` for development; the production image runs the app directly with Python to keep it small.
 
 - Build images:
-  - Production: `docker build -t agentic_test .`
+  - Production: `docker build --target runtime -t agentic_test .`
   - Development: `docker build --target dev -t agentic_dev .`
 
 - Helpers:

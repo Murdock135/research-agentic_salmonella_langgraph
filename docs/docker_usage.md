@@ -11,7 +11,7 @@ Development Workflow
   - Inside: run `uv sync --frozen` once, then `uv run -m core.main -t`.
 
 Production Workflow
-- Build prod image: `docker build -t agentic_test .`
+- Build prod image: `docker build --target runtime -t agentic_test .`
 - First-time setup: make scripts executable: `chmod +x scripts/docker_*.sh`
 - Easiest: run `scripts/docker_prod.sh` and follow prompts.
   - Prompts for secrets source and mounts the HF cache; can also mount `output/` back to host.

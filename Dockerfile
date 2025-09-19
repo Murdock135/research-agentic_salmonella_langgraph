@@ -5,8 +5,7 @@ ARG PYTHON_VERSION=3.13.3
 # ---------- uv base (tools only) ----------
 FROM python:${PYTHON_VERSION}-slim AS uv-base
 WORKDIR /app
-ENV UV_LINK_MODE=copy \
-  PATH="/root/.local/bin:${PATH}"
+ENV UV_LINK_MODE=copy 
 
 # Minimal system deps for building wheels; add more if required
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -77,5 +76,10 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 # Copy source; override with -v "$PWD:/app" for live editing
 COPY . .
+
+# Tell python to use the app's venv by default
+ENV PATH="/app/.venv/bin:${PATH}"
+
+# Default to bash
 CMD ["bash"]
 

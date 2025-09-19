@@ -5,6 +5,11 @@ Overview
 - Package management uses uv (https://docs.astral.sh/uv/), which installs dependencies from `pyproject.toml` and `uv.lock`.
 - For build/run commands, mounting, and troubleshooting, see `docs/docker_usage.md`.
 
+Default build target
+- Docker builds the last stage by default. Because the `dev` stage is the last stage in this Dockerfile, a plain `docker build .` would produce the developer image.
+- To build the production image, explicitly select the runtime stage: `docker build --target runtime -t agentic_test .`.
+- Helper scripts already use `--target runtime`; documentation and examples also show the explicit target to avoid ambiguity.
+
 Stages
 - uv-base: Installs uv and minimal build tools (curl, build-essential). Nothing from your app is copied here yet.
 - deps-prod: Installs only production dependencies into a local virtual environment (`/app/.venv`). Uses `uv sync --frozen --no-dev` for deterministic, smaller installs. Falls back to `requirements.txt` if `pyproject.toml` is not present.
