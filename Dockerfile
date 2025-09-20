@@ -40,6 +40,7 @@ RUN --mount=type=cache,target=/root/.cache/uv bash -euxo pipefail -c '\
 
 # ---------- deps (dev) ----------
 FROM deps-prod AS deps-dev
+
 # Install dev groups for local development/testing
 RUN --mount=type=cache,target=/root/.cache/uv \
   if [ -f pyproject.toml ]; then uv sync --frozen; fi
@@ -72,13 +73,15 @@ CMD ["python", "-m", "core.main"]
 
 # ---------- dev (developer image) ----------
 FROM deps-dev AS dev
-ENV PYTHONUNBUFFERED=1
-WORKDIR /app
-# Copy source; override with -v "$PWD:/app" for live editing
-COPY . .
 
 # Tell python to use the app's venv by default
+ENV PYTHONUNBUFFERED=1
 ENV PATH="/app/.venv/bin:${PATH}"
+
+WORKDIR /app
+
+# Copy source; override with -v "$PWD:/app" for live editing
+COPY . .
 
 # Default to bash
 CMD ["bash"]
