@@ -55,20 +55,14 @@ COPY . .
 # ---------- runtime (prod) ----------
 FROM python:${PYTHON_VERSION}-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
-  PYTHONUNBUFFERED=1
+  PYTHONUNBUFFERED=1 \
+  PATH="/app/.venv/bin:${PATH}"
 
-# Create non-root user (Debian/Ubuntu)
-RUN groupadd -g 10001 app && useradd -u 10001 -g app -m -s /usr/sbin/nologin -c "App user" app
 WORKDIR /app
 
 # Copy built app (includes .venv and source)
 COPY --from=build /app /app
 
-# Ensure writable workspace for the app user (e.g., creating output/)
-RUN chown -R app:app /app
-
-ENV PATH="/app/.venv/bin:${PATH}"
-USER app
 CMD ["python", "-m", "core.main"]
 
 # ---------- dev (developer image) ----------
