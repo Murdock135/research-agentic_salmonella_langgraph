@@ -9,17 +9,20 @@ set -euo pipefail
 
 IMAGE_NAME="agentic_test"
 
+# Check if Docker is installed
 echo "[docker-prod] Checking for Docker..."
 command -v docker >/dev/null 2>&1 || {
   echo >&2 "Docker is required but not found."
   exit 1
 }
 
+# Check if the image exists, if not build it
 if ! docker image inspect "$IMAGE_NAME" >/dev/null 2>&1; then
   echo "[docker-prod] Production image not found. Building..."
   docker build --target runtime -t "$IMAGE_NAME" .
 fi
 
+# Ask user for secrets source
 echo "[docker-prod] Select secrets source:"
 echo "  1) ~/.secrets/.llm_apis"
 echo "  2) .env"
