@@ -42,8 +42,8 @@ class ExecutorOutput(BaseModel):
     """Output of the executor node"""
     step: str = Field(..., description="What you were tasked to do by the user")
     previously_done: str = Field(..., description="What you have already done to answer the query")
-    code: str = Field(..., description="List of code snippets generated to answer the query")
-    execution_results: str = Field(..., description="Results of executing the code snippets")
+    code: str = Field(..., description="The **exact** code you wrote.")
+    execution_results: str = Field(..., description="Summary of results of running your code.")
     files_generated: List[str] = Field(..., description="Files generated during execution")
     assumptions: str = Field(..., description="Assumptions made during execution")
     wants: str = Field(..., description="Further information needed to improve execution")
