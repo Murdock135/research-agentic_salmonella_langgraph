@@ -58,7 +58,7 @@ case "$CHOICE" in
   ;;
 esac
 
-HF_CACHE_MOUNT=("-v" "$HOME/.cache/huggingface:/home/app/.cache/huggingface")
+HF_CACHE_MOUNT=("-v" "$HOME/.cache/huggingface:/root/.cache/huggingface")
 
 read -p "Run test query (-t)? [Y/n]: " RUN_TEST
 RUN_TEST=${RUN_TEST:-Y}
