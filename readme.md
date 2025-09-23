@@ -1,7 +1,5 @@
 # Setup
 
-Docs index: see `docs/README.md` for links to Docker docs.
-
 > **Recommendation**
 > I highly recommend using a UNIX based OS or VM (Linux, MacOS) to run this project. If you're on windows, install [WSL (Windows Subsystem for linux)](https://learn.microsoft.com/en-us/windows/wsl/install) and run it in there.
 
@@ -61,26 +59,26 @@ If you want to use your own query:
 
 If you have tracing enabled (see [enable tracing](#enable-tracing-optional)), you will see the trace of the system in your langsmith account.
 
-## Docker: Dev and Production
+## Alternative: How to use Docker to run the project
 
-Prefer `uv` for development; the production image runs the app directly with Python to keep it small.
+Open WSL or your linux/MacOS terminal and `cd` into the project  
 
-- Build images:
-  - Production: `docker build --target runtime -t agentic_test .`
-  - Development: `docker build --target dev -t agentic_dev .`
+```bash
+chmod +x scripts/docker_*.sh
+```
 
-- Helpers:
-  - Dev: `scripts/docker_dev.sh` (prompts for secrets; mounts code and HF cache)
-  - Prod: `scripts/docker_prod.sh` (prompts for secrets; mounts HF cache; optional output mount)
+Then, depending on if you're a contributor or simply trying to test the application, run one of the following 2 commands.
 
-- First-time setup for scripts:
-  - `chmod +x scripts/docker_*.sh`
+- If you're simply testing,
 
-- Windows note:
-  - Run scripts via Bash (WSL or Git Bash), e.g.: `bash scripts/docker_dev.sh`
+```bash
+bash scripts/docker-prod.sh
+```
 
-For run workflows, mounts, and troubleshooting, see `docs/docker_usage.md`.
-For build-stage layout and rationale, see `docs/dockerfile_design.md`.
+- If you're a contributor,
+```bash
+bash scripts/docker-dev.sh
+```
 
 ## Enable tracing (Optional)
 
