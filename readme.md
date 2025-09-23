@@ -3,7 +3,7 @@
 Docs index: see `docs/README.md` for links to Docker docs.
 
 > **Recommendation**
-> I highly recommend using a UNIX based OS or VM to run this project. If you're on windows, install [WSL (Windows Subsystem for linux)](https://learn.microsoft.com/en-us/windows/wsl/install) and run it in there (I recommend Ubuntu).
+> I highly recommend using a UNIX based OS or VM (Linux, MacOS) to run this project. If you're on windows, install [WSL (Windows Subsystem for linux)](https://learn.microsoft.com/en-us/windows/wsl/install) and run it in there.
 
 1. Clone this repo with git or download as a zip file and then extract it.
 2. In your terminal, 'cd' into the project folder.
