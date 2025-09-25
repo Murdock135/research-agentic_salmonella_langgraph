@@ -25,6 +25,7 @@ class Config:
         self.ANALYZER_PROMPT_PATH = self.PROMPT_DIR / 'analyzer_message.txt'
         self.EXECUTOR_PROMPT_PATH = self.PROMPT_DIR / 'executor_message.txt'
         self.AGGREGATOR_PROMPT_PATH = self.PROMPT_DIR / 'aggregator_message.txt'
+        self.SEROTYPE_PROMPT_PATH = self.PROMPT_DIR / 'serotype_message.txt'
         
         # Path to user messages
         self.EXPLORER_MESSAGE_PATH = self.PROMPT_DIR / 'explorer_user_message.txt'
@@ -72,7 +73,8 @@ class Config:
             'explorer_prompt': load_text(self.EXPLORER_PROMPT_PATH),
             'analyzer_prompt': load_text(self.ANALYZER_PROMPT_PATH),
             'executor_prompt': load_text(self.EXECUTOR_PROMPT_PATH),
-            'aggregator_prompt': load_text(self.AGGREGATOR_PROMPT_PATH)
+            'aggregator_prompt': load_text(self.AGGREGATOR_PROMPT_PATH),
+            'serotype_prompt': load_text(self.SEROTYPE_PROMPT_PATH),
         }
         
     def load_user_messages(self):

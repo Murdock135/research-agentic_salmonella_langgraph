@@ -3,7 +3,7 @@ from .output_schemas import Plan
 
 class State(TypedDict):
     query: str
-    route: bool | None
+    route: bool | str | None
     answer: str | None
     plan: Plan | None
     

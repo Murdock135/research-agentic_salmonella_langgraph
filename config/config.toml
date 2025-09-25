@@ -24,3 +24,7 @@ provider = "google_genai"
 model = "gemini-2.0-flash"
 provider = "google_genai"
 
+[serotype]
+model = "gemini-2.0-flash"
+provider = "google_genai"
+

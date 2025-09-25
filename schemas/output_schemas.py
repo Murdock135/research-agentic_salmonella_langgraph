@@ -35,7 +35,7 @@ class Plan(BaseModel):
         
 class Router(BaseModel):
     """Output of the router node"""
-    route: bool = Field(..., description="Whether the query requires further planning (True) or can be answered directly (False)")
+    route: bool | str = Field(..., description="True to defer to planner, False to answer directly, or 'serotype' to use the serotype node")
     answer: str | None = Field(..., description="The answer to the query if it can be answered directly")
     
 class ExecutorOutput(BaseModel):

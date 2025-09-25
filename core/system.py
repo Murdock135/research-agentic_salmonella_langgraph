@@ -29,6 +29,7 @@ class Agentic_system:
         analyzer_config = self.llm_config['analyzer']
         executor_config = self.llm_config['executor']
         aggregator_config = self.llm_config['aggregator']
+        serotype_config = self.llm_config.get('serotype', router_config)
         
         return {
             'router_llm': get_llm(model=router_config['model'], provider=router_config['provider']),
@@ -36,15 +37,18 @@ class Agentic_system:
             'planner_llm': get_llm(model=planner_config['model'], provider=planner_config['provider']),
             'analyzer_llm': get_llm(model=analyzer_config['model'], provider=analyzer_config['provider']),
             'executor_llm': get_llm(model=executor_config['model'], provider=executor_config['provider']),
-            'aggregator_llm': get_llm(model=aggregator_config['model'], provider=aggregator_config['provider'])
+            'aggregator_llm': get_llm(model=aggregator_config['model'], provider=aggregator_config['provider']),
+            'serotype_llm': get_llm(model=serotype_config['model'], provider=serotype_config['provider'])
         }
     
     def _get_node_definitions(self):
+        from nodes.serotype import serotype_node
         self.router_node_partial = partial(router_node, llm=self.llms['router_llm'], prompt=self.prompts['router_prompt'])
         self.planner_node_partial = partial(planner_node, llm=self.llms['planner_llm'], sys_prompt=self.prompts['planner_prompt'], config=self.config)
         self.executor_node_partial = partial(executor_node, llm=self.llms['executor_llm'], prompt=self.prompts['executor_prompt'], output_dir=self.config.EXECUTOR_OUTPUT_DIR)
         self.aggregator_node_partial = partial(aggregator_node, llm=self.llms['aggregator_llm'], prompt=self.prompts['aggregator_prompt'])
         self.saver_node_partial = partial(saver_node, save_dir=self.config.RUN_OUTPUT_DIR)
+        self.serotype_node_partial = partial(serotype_node, llm=self.llms['serotype_llm'], prompt=self.prompts.get('serotype_prompt', ""), config=self.config)
     
     def _build_graph(self):
         graph_init = StateGraph(state_schema=State)
@@ -60,12 +64,14 @@ class Agentic_system:
         graph_init.add_node("executor", self.executor_node_partial)
         graph_init.add_node("aggregator", self.aggregator_node_partial)
         graph_init.add_node("saver", self.saver_node_partial)
+        graph_init.add_node("serotype", self.serotype_node_partial)
         
         graph_init.add_edge(START, "router")
-        graph_init.add_conditional_edges("router", router_func, {True: "planner", False: END})
+        graph_init.add_conditional_edges("router", router_func, {True: "planner", False: END, "serotype": "serotype"})
         graph_init.add_edge("planner", "executor")
         graph_init.add_edge("executor", "aggregator")
         graph_init.add_edge("aggregator", "saver")
+        graph_init.add_edge("serotype", "saver")
         graph_init.add_edge("saver", END)
         
         self.graph = graph_init.compile()

@@ -10,6 +10,7 @@ def router_func(router_output):
     """
     return router_output['route']
     
+
 def router_node(state: State, **kwargs):
     """
     Route the user query to the appropriate node based on the type of query
