@@ -28,21 +28,25 @@ case "$CHOICE" in
     SECRETS_ARGS+=("-v" "$HOME/.secrets:/root/.secrets")
     if [ ! -f "$HOME/.secrets/.llm_apis" ]; then
       echo "[docker-dev] Warning: $HOME/.secrets/.llm_apis not found." >&2
+      exit 1
     fi
     ;;
   2)
     SECRETS_ARGS+=("--env-file" ".env")
     if [ ! -f ".env" ]; then
       echo "[docker-dev] Warning: .env not found in current directory." >&2
+      exit 1
     fi
     ;;
   3)
     SECRETS_ARGS+=("--env-file" ".env" "-v" "$HOME/.secrets:/root/.secrets")
     if [ ! -f "$HOME/.secrets/.llm_apis" ]; then
       echo "[docker-dev] Warning: $HOME/.secrets/.llm_apis not found." >&2
+      exit 1
     fi
     if [ ! -f ".env" ]; then
       echo "[docker-dev] Warning: .env not found in current directory." >&2
+      exit 1
     fi
     ;;
   *)
