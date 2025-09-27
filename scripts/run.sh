@@ -60,23 +60,25 @@ MOUNT_VENV="--mount type=volume,source=sparq_venv,target=/app/.venv"
 MOUNT_PROJECT=""
 [[ "$DEVELOPER" = true ]] && MOUNT_PROJECT="--mount type=bind,source=$PROJECT_ROOT,target=/app"
 
-# TODO: Turn this into a heredoc that only displays when DEVELOPER=true
+# Developer information banner (heredoc)
 if $DEVELOPER; then
-  echo "=============================="
-  echo " Developer Mode Activated"
-  echo "=============================="
-  echo "You are running the container in developer mode."
-  echo "This means your local project directory ($PROJECT_ROOT) is mounted inside the container."
-  echo "Any changes you make to the code will be reflected inside the container immediately."
-  echo ""
-  echo "To install new dependencies, run:"
-  echo "  uv sync --frozen"
-  echo ""
-  echo "To start the application, run:"
-  echo "  uv run -m core.main -t"
-  echo ""
-  echo "Happy coding!"
-  echo "=============================="
+  cat <<DEV_BANNER
+==============================
+ Developer Mode Activated
+==============================
+You are running the container in developer mode.
+This means your local project directory ($PROJECT_ROOT) is mounted inside the container.
+Any changes you make to the code will be reflected inside the container immediately.
+
+To install new dependencies, run:
+  uv sync --frozen
+
+To start the application, run:
+  uv run -m core.main -t
+
+Happy coding!
+==============================
+DEV_BANNER
 fi
 
 exec docker run -it --rm \
