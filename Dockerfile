@@ -62,7 +62,7 @@ ENV PATH="/app/.venv/bin:$PATH" \
 
 # Copy source and make editable install for dev inner-loop
 COPY . .
-RUN uv pip install --editable .
+# RUN uv pip install --editable .
 
 CMD ["bash"]
 
