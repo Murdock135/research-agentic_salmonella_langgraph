@@ -52,20 +52,25 @@ else
   echo "[run.sh] ~/.secrets/.llm_apis file not found. Continuing without mounting it."
 fi
 
-# Mount venv (in a docker volume)
-docker volume create sparq_venv
-MOUNT_VENV="--mount type=volume,source=sparq_venv,target=/app/.venv"
+# TODO: Mount the outputs/ directory
+
+# Mount venv (in a docker volume) if developer
+MOUNT_VENV=""
+if [[ $DEVELOPER == true ]]; then
+  docker volume create sparq_venv
+  MOUNT_VENV="--mount type=volume,source=sparq_venv,target=/app/.venv"
+fi
 
 # Mount project if developer
 MOUNT_PROJECT=""
-[[ "$DEVELOPER" = true ]] && MOUNT_PROJECT="--mount type=bind,source=$PROJECT_ROOT,target=/app"
+[[ $DEVELOPER == true ]] && MOUNT_PROJECT="--mount type=bind,source=$PROJECT_ROOT,target=/app"
 
 # Developer information banner (heredoc)
 if $DEVELOPER; then
   cat <<DEV_BANNER
 ==============================
  Developer Mode Activated
-==============================
+=======
 You are running the container in developer mode.
 This means your local project directory ($PROJECT_ROOT) is mounted inside the container.
 Any changes you make to the code will be reflected inside the container immediately.
@@ -81,10 +86,34 @@ Happy coding!
 DEV_BANNER
 fi
 
+# FIX: CMD cannot be "" if DEVELOPER is true
+# If production, ask if user wants to use the test query
+CMD=""
+[[ $DEVELOPER == false ]] && {
+  echo "Do you want to run the test query after starting the container? (y/n)"
+  read CHOICE
+  if [[ $CHOICE =~ ^[yY] ]]; then
+    CMD="-t"
+  fi
+}
+
+# Echo all the mount options for debugging
+cat <<DEBUG_MOUNTS
+[run.sh] DEVELOPER: $DEVELOPER
+[run.sh] mount options:
+  SET_ENV: $SET_ENV
+  MOUNT_HF: $MOUNT_HF
+  MOUNT_SECRETS: $MOUNT_SECRETS
+  MOUNT_VENV: $MOUNT_VENV
+  MOUNT_PROJECT: $MOUNT_PROJECT
+[run.sh] CMD: $CMD
+DEBUG_MOUNTS
+
 exec docker run -it --rm \
   $SET_ENV \
   $MOUNT_HF \
   $MOUNT_SECRETS \
   $MOUNT_VENV \
   $MOUNT_PROJECT \
-  "$IMAGE_NAME"
+  "$IMAGE_NAME" \
+  ${CMD:+$CMD}

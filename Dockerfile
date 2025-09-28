@@ -40,7 +40,8 @@ COPY . .
 RUN --mount=type=cache,target=/root/.cache/uv \
   uv sync --frozen --no-dev
 
-CMD ["python", "-m", "core.main"]
+ENTRYPOINT ["python", "-m", "core.main"]
+CMD []
 
 # ---------- Development image ----------
 FROM uv-base AS dev
