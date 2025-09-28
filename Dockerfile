@@ -50,7 +50,7 @@ WORKDIR /app
 # Dev tools (pick one editor; here: neovim)
 RUN apt-get update && apt-get install -y --no-install-recommends \
   git bash-completion curl ca-certificates \
-  neovim ripgrep fd-find unzip \
+  neovim nano ripgrep fd-find unzip \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy manifests and install deps incl. dev groups
