@@ -7,22 +7,7 @@
 2. In your terminal, 'cd' into the project folder.
 3. Install Python 3.13.3 if you haven't already.
 
-Option A: Using uv (recommended)
-- Install uv (one-time):
-  - macOS/Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- Install dependencies and create `.venv`:
-  - `uv sync`
-- You can run commands through uv without activating the venv:
-  - `uv run -m utils.download_data`
-  - `uv run -m core.main -t`
 
-Option B: Using Python + pip
-- Create a virtual environment (example using built-in venv):
-  - `python3 -m venv .venv`
-- Activate the virtual environment:
-  - `source .venv/bin/activate`
-- Install packages:
-  - `pip install -r requirements.txt`
 
 # Get access to the data
 Go to https://huggingface.co/zayanhugsAI, click on the relevant datasets and request access. The datasets used in this project are - 
@@ -64,20 +49,13 @@ If you have tracing enabled (see [enable tracing](#enable-tracing-optional)), yo
 Open WSL or your linux/MacOS terminal and `cd` into the project  
 
 ```bash
-chmod +x scripts/docker_*.sh
+chmod +x scripts/run.sh
 ```
 
-Then, depending on if you're a contributor or simply trying to test the application, run one of the following 2 commands.
-
-- If you're simply testing,
+Then run it with
 
 ```bash
-bash scripts/docker-prod.sh
-```
-
-- If you're a contributor,
-```bash
-bash scripts/docker-dev.sh
+./scripts/run.sh
 ```
 
 ## Enable tracing (Optional)
@@ -91,6 +69,7 @@ If you want to enable tracing using langsmith, create an account in [langsmith](
 LANGSMITH_TRACING=True
 LANGSMITH_PROJECT=<your_project_name>
 ```
+I am using `SPARQ` as `<your_project_name>`
 
 # Configuration
 
