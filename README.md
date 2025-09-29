@@ -42,7 +42,22 @@ If you want to use your own query:
 - Using uv: `uv run -m core.main`
 - Using Python: `python -m core.main`
 
-If you have tracing enabled (see [enable tracing](#enable-tracing-optional)), you will see the trace of the system in your langsmith account.
+## Inspecting outputs
+
+After each run, you can see output logs in the `output/` directory. Each run will be timestamped. For example, if you run the project on the date: 29/09/2025 (DD/MM/YYYY) at 11:01:01, it will be stamped as `output/output_29-09-2025_11-01-01`. This folder has the following components
+
+```
+output/output_29-09-2025_11-28-17
+├── aggregator 
+├── analyzer
+├── executor
+├── explorer
+├── final_answer.json # only the final answer
+├── planner
+└── trace.json # full trace
+```
+
+You can also use Langsmith for looking at the trace (same information as inside the `output/`)If you have tracing enabled (see [enable tracing](#enable-tracing-optional)), you will see the trace of the system in your langsmith account.
 
 ## Alternative: How to use Docker to run the project
 
