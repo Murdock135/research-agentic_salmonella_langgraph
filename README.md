@@ -138,10 +138,8 @@ GOOGLE_GENAI_API_KEY=<YOUR KEY HERE>
 OPENAI_API_KEY=<YOUR KEY HERE>
 ```
 
-
 > If you want to inspect the related code, `config/load_env.py` is responsible for looking for API keys
 
-When running with Docker, either pass `--env-file .env` to `docker run` or mount your `~/.secrets` directory; see `docs/docker_usage.md` for examples. The `.env` file is intentionally excluded from the image via `.dockerignore` so your secrets aren’t baked into the image.
 
 # FAQ
 
