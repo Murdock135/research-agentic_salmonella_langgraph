@@ -1,0 +1,38 @@
+flowchart TD
+    START([START]) --> R[Router\nnodes/router.py]
+    R -->|route = False| A1[[Answer returned\nstate.answer]]
+    R -->|route = True| P[Planner\nnodes/planner.py]
+    A1 --> END1([END])
+
+    subgraph Planning
+        P -->|outputs:\nplan,\ndata_manifest,\ndf_summaries| E[Executor\nnodes/executor.py]
+    end
+
+    subgraph Execution
+        E -->|updates:\nexecutor_results| G[Aggregator\nnodes/aggregator.py]
+        %% Executor Tools
+        subgraph Tools (Executor)
+            TH[Tools Hub]
+            T1[[filesystemtools\n(write/read/list/search)]]
+            T2[[python_repl]]
+            T3[[load_dataset]]
+            T4[[get_sheet_names]]
+            T5[[find_csv_excel_files]]
+            T6[[get_cached_dataset_path\n(HF cache)]]
+        end
+        %% Single link from Executor to the Tools Hub for clarity
+        E -.uses.-> TH
+        TH --> T1
+        TH --> T2
+        TH --> T3
+        TH --> T4
+        TH --> T5
+        TH --> T6
+    end
+
+    G -->|answer| S[Saver\nnodes/saver.py]
+    S --> END2([END])
+
+    %% Notes
+    classDef node fill:#eef,stroke:#447;
+    class R,P,E,G,S node;
