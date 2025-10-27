@@ -1,9 +1,10 @@
+from typing import Annotated, List
+
+from langgraph.graph import START, StateGraph
+from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field
-from typing import List, Annotated
 from typing_extensions import TypedDict
 
-from langgraph.graph import StateGraph, START
-from langgraph.graph.message import add_messages
 
 # Define desired output structure
 class Step(BaseModel):

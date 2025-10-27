@@ -1,9 +1,10 @@
+import json
+from pathlib import Path
+
 from pydantic import BaseModel
 from schemas.output_schemas import Plan
 from schemas.state import State
 
-import json
-from pathlib import Path
 
 def pydantic_encoder(obj):
     if isinstance(obj, BaseModel):

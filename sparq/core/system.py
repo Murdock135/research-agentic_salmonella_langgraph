@@ -1,17 +1,17 @@
-from config.config import Config
 from functools import partial
 
-from nodes.planner import planner_node
-from nodes.executor import executor_node
-from nodes.router import router_func, router_node
+import pydantic_core
+from config.config import Config
+from langgraph.graph import END, START, StateGraph
+from langgraph.types import RetryPolicy
 from nodes.aggregator import aggregator_node
+from nodes.executor import executor_node
+from nodes.planner import planner_node
+from nodes.router import router_func, router_node
 from nodes.saver import saver_node
+from rich import print
 from schemas.state import State
 
-from langgraph.graph import StateGraph, START, END
-from langgraph.types import RetryPolicy
-import pydantic_core
-from rich import print
 
 class Agentic_system:
     def __init__(self, config: Config):

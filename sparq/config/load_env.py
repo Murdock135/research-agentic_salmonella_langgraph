@@ -1,6 +1,7 @@
-from pathlib import Path
-from dotenv import load_dotenv
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
 
 DEFAULT_PATH = Path.home() / ".secrets/.llm_apis"
 

@@ -1,6 +1,7 @@
 # utils.py
 from pandas import DataFrame
 
+
 def load_text(file_path):
     """Loads text from a file."""
     with open(file_path, 'r') as f:
@@ -10,7 +11,7 @@ def load_text(file_path):
 
 def save_text(text, filepath, time_stamp=True):
     import datetime
-    
+
     # Save response
     now = datetime.datetime.now()
     timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
@@ -107,9 +108,10 @@ def get_df_summaries_from_manifest(manifest: dict[str, dict[str, str]]) -> dict[
     Returns:
         dict: Dictionary with sheet names as keys and data summaries (columns, non null counts, dtypes) in markdown format as values.
     """
-    from tools.tools import find_csv_excel_files, get_cached_dataset_path
     from pathlib import Path
+
     import pandas as pd
+    from tools.tools import find_csv_excel_files, get_cached_dataset_path
     
     df_summaries = {}
     
@@ -142,6 +144,7 @@ def get_llm(model='gpt-4o', provider='openai'):
     
     elif provider=='openrouter':
         import os
+
         from langchain_openai import ChatOpenAI
         
         try:
@@ -182,9 +185,10 @@ def get_llm(model='gpt-4o', provider='openai'):
 
 
 def pull_ollama_model(model_name: str) -> None:
-    import subprocess
-    from config import Config
     import os
+    import subprocess
+
+    from config import Config
     
     config = Config()
     project_dir = config.BASE_DIR
@@ -269,6 +273,7 @@ def get_data_repoIDs(path_to_manifest_file):
 # Tests
 if __name__ == "__main__":
     import os
+
     from config.config import Config
     
     config = Config()
