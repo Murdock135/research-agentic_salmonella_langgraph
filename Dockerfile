@@ -1,20 +1,69 @@
-ARG UV_VERSION=0.8.15
-ARG PYTHON_VERSION=3.12
+# syntax=docker/dockerfile:1.7
+ARG PYTHON_VERSION=3.13.3
 
-FROM python:${PYTHON_VERSION}-slim-trixie
+# ---------- uv base (tools only) ----------
+FROM python:${PYTHON_VERSION}-slim AS uv-base
+WORKDIR /app
+ENV UV_LINK_MODE=copy
 
-RUN apt-get update && apt-get install -y \
-  build-essential \
-  libpq-dev \
-  curl \
-  ca-certificates \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  curl ca-certificates build-essential \
   && rm -rf /var/lib/apt/lists/*
 
-ADD https://astral.sh/uv/${UV_VERSION}/install.sh /uv-installer.sh
-RUN sh /uv-installer.sh && rm /uv-installer.sh
+# Install uv (cache-friendly)
+RUN curl -LsSf https://astral.sh/uv/install.sh -o /tmp/uv.sh \
+  && sh /tmp/uv.sh \
+  && rm /tmp/uv.sh
 
 ENV PATH="/root/.local/bin:$PATH"
 
-# Copy the project into the image
+# ---------- Production image ----------
+FROM uv-base AS prod
+WORKDIR /app
 
+# Copy dependency manifests for caching
+COPY pyproject.toml uv.lock ./
+
+# Create venv + install locked prod deps (no project, no dev deps)
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv sync --frozen --no-install-project --no-dev
+
+# Use the venv for all subsequent commands
+ENV PATH="/app/.venv/bin:$PATH" \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1
+
+# Copy source (only this layer changes on code edits)
+COPY . .
+
+# Install the project itself into the venv (prod only)
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv sync --frozen --no-dev
+
+ENTRYPOINT ["python", "-m", "core.main"]
+CMD []
+
+# ---------- Development image ----------
+FROM uv-base AS dev
+WORKDIR /app
+
+# Dev tools (pick one editor; here: neovim)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  git bash-completion curl ca-certificates \
+  neovim nano ripgrep fd-find unzip \
+  && rm -rf /var/lib/apt/lists/*
+
+# Copy manifests and install deps incl. dev groups
+COPY pyproject.toml uv.lock ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv sync --frozen
+
+ENV PATH="/app/.venv/bin:$PATH" \
+  PYTHONUNBUFFERED=1
+
+# Copy source and make editable install for dev inner-loop
+COPY . .
+# RUN uv pip install --editable .
+
+CMD ["bash"]
 

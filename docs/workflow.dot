@@ -1,0 +1,45 @@
+digraph G {
+  rankdir=LR;
+  node [shape=box, style=filled, fillcolor="#eef", color="#447", fontname="Arial"];
+
+  START [shape=circle, label="START", fillcolor="white"];
+  END1  [shape=doublecircle, label="END", fillcolor="white"];
+  END2  [shape=doublecircle, label="END", fillcolor="white"];
+
+  R [label="Router\n(nodes/router.py)\noutput: route, answer?"];
+  P [label="Planner\n(nodes/planner.py)\noutput: plan, data_manifest, df_summaries"];
+  E [label="Executor\n(nodes/executor.py)\nupdates: executor_results"];
+  G [label="Aggregator\n(nodes/aggregator.py)\noutput: answer"];
+  S [label="Saver\n(nodes/saver.py)\nwrites: trace.json, final_answer.json"];
+
+  START -> R;
+  R -> A1 [label="route=False"];
+  A1 [label="Answer returned\n(state.answer)"];
+  A1 -> END1;
+
+  R -> P [label="route=True"];
+  P -> E;
+  E -> G;
+  G -> S;
+  S -> END2;
+
+  subgraph cluster_tools {
+    label="Executor Tools";
+    color="#bbb";
+    fontname="Arial";
+    TH [label="Tools Hub"];
+    T1 [label="filesystemtools\n(write/read/list/search)"];
+    T2 [label="python_repl"];
+    T3 [label="load_dataset"];
+    T4 [label="get_sheet_names"];
+    T5 [label="find_csv_excel_files"];
+    T6 [label="get_cached_dataset_path\n(HF cache)"];
+  }
+  E -> TH [style=dashed, label="uses"];
+  TH -> T1;
+  TH -> T2;
+  TH -> T3;
+  TH -> T4;
+  TH -> T5;
+  TH -> T6;
+}

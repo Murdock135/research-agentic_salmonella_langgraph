@@ -1,30 +1,13 @@
 # Setup
 
 > **Recommendation**
-> I highly recommend using a UNIX based OS or VM to run this project. If you're on windows, install [WSL (Windows Subsystem for linux)](https://learn.microsoft.com/en-us/windows/wsl/install) and run it in there (I recommend Ubuntu).
+> I highly recommend using a UNIX based OS or VM (Linux, MacOS) to run this project. If you're on windows, install [WSL (Windows Subsystem for linux)](https://learn.microsoft.com/en-us/windows/wsl/install) and run it in there.
 
 1. Clone this repo with git or download as a zip file and then extract it.
 2. In your terminal, 'cd' into the project folder.
-3. Install python 3.13.3 if you haven't already.
-4. Create a virtual environment with your preferred *virtual environment manager* (python, pyenv, conda, etc.). For example, with python you can use the following code in your terminal (make sure you 'cd' into the project folder.)
+3. Install Python 3.13.3 if you haven't already.
 
-```
-python3 -m venv .venv 
-```
 
-Explanation: '-m' is a flag and tells python to run the 'venv' script (came with the python installation) as a module. The module needs your preferred name for the virtual environment as a parameter. Here, we're using the name '.venv'
-
-3. Activate the virtual environment. If you used python to create the virtual environent like in the previous step, you can use,
-
-```
-source .venv/bin/activate
-```
-
-4. Install packages with
-
-```
-pip install -r requirements.txt
-```
 
 # Get access to the data
 Go to https://huggingface.co/zayanhugsAI, click on the relevant datasets and request access. The datasets used in this project are - 
@@ -45,23 +28,50 @@ Go to https://huggingface.co/zayanhugsAI, click on the relevant datasets and req
 
 First download the data using the following command.
 
+Using uv: `uv run -m utils.download_data`
+
+Using Python: `python -m utils.download_data`
+
+Then, run the agentic system using a test query already defined (in `config/config.toml`)
+
+- Using uv: `uv run -m core.main -t`
+- Using Python: `python -m core.main -t`
+
+If you want to use your own query:
+
+- Using uv: `uv run -m core.main`
+- Using Python: `python -m core.main`
+
+## Inspecting outputs
+
+After each run, you can see output logs in the `output/` directory. Each run will be timestamped. For example, if you run the project on the date: 29/09/2025 (DD/MM/YYYY) at 11:01:01, it will be stamped as `output/output_29-09-2025_11-01-01`. This folder has the following components
+
 ```
-python -m utils.download_data
+output/output_29-09-2025_11-28-17
+├── aggregator 
+├── analyzer
+├── executor
+├── explorer
+├── final_answer.json # only the final answer
+├── planner
+└── trace.json # full trace
 ```
 
-Then, run the agentic system using a test query already defined (in `config/config.toml`) using
+You can also use Langsmith for looking at the trace (same information as inside the `output/`)If you have tracing enabled (see [enable tracing](#enable-tracing-optional)), you will see the trace of the system in your langsmith account.
 
-```
-python -m core.main -t
-```
+## Alternative: How to use Docker to run the project
 
-If you want to use your own query, simply use
+Open WSL or your linux/MacOS terminal and `cd` into the project  
 
-```
-python -m core.main
+```bash
+chmod +x scripts/run.sh
 ```
 
-If you have tracing enabled (see [enable tracing](#enable-tracing-optional)), you will see the trace of the system in your langsmith account.
+Then run it with
+
+```bash
+./scripts/run.sh
+```
 
 ## Enable tracing (Optional)
 
@@ -74,6 +84,7 @@ If you want to enable tracing using langsmith, create an account in [langsmith](
 LANGSMITH_TRACING=True
 LANGSMITH_PROJECT=<your_project_name>
 ```
+I am using `SPARQ` as `<your_project_name>`
 
 # Configuration
 
@@ -127,8 +138,8 @@ GOOGLE_GENAI_API_KEY=<YOUR KEY HERE>
 OPENAI_API_KEY=<YOUR KEY HERE>
 ```
 
-
 > If you want to inspect the related code, `config/load_env.py` is responsible for looking for API keys
+
 
 # FAQ
 
