@@ -7,8 +7,6 @@ import asyncio
 
 from .system import Agentic_system
 
-
-
 if __name__ == "__main__":
     config = Config()
 
