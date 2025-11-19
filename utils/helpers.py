@@ -133,7 +133,7 @@ def get_df_summaries_from_manifest(manifest: dict[str, dict[str, str]]) -> dict[
                     df_summaries[dataset][subdata_name] = df_heads
                         
     return df_summaries
-                
+               
 
 def get_llm(model='gpt-4o', provider='openai'):
     if (provider=='openai') | (provider=='google_genai'):
@@ -177,6 +177,15 @@ def get_llm(model='gpt-4o', provider='openai'):
             else:
                 raise ValueError(f"Model {model} not found and not pulled.")
     
+    elif provider == 'aws_bedrock':
+        from langchain_aws import ChatBedrock
+        
+        try:
+            llm = ChatBedrock(model=model)
+            return llm
+        except Exception as e:
+            raise ValueError(f"Error initializing AWS Bedrock model {model}:\n{e}")
+        
     else:
         raise ValueError(f"Provider '{provider} not supported. Please choose 'openai', 'openrouter', or 'ollama'.")
 
