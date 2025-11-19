@@ -1,5 +1,8 @@
 # utils.py
 from pandas import DataFrame
+from typing import List, Dict, Optional
+from rich.console import Console
+from rich.table import Table
 
 def load_text(file_path):
     """Loads text from a file."""
@@ -274,6 +277,43 @@ def get_data_repoIDs(path_to_manifest_file):
     repo_ids = {dataset: info['repo_id'] for dataset, info in manifest.items() if 'repo_id' in info}
     
     return repo_ids
+
+
+def render_records_table(records: List[Dict], columns: Optional[List[str]] = None, title: Optional[str] = None) -> None:
+    """Render a list of mapping records (list[dict]) to a table using rich and print it.
+
+    This function prints the table to stdout and returns None. If a caller
+    needs the rendered text instead, they should use a separate capture
+    Console (not provided here).
+    """
+    console = Console()
+
+    # Empty records -> print an empty table (with optional title)
+    if not records:
+        table = Table(title=title) if title else Table()
+        console.print(table)
+        return
+
+    # Determine columns
+    if columns is None:
+        cols: List[str] = []
+        for r in records:
+            for k in r.keys():
+                if k not in cols:
+                    cols.append(k)
+    else:
+        cols = columns
+
+    table = Table(title=title, show_header=True, header_style="bold magenta")
+    for c in cols:
+        table.add_column(str(c))
+
+    for r in records:
+        row = [str(r.get(c, "")) for c in cols]
+        table.add_row(*row)
+
+    console.print(table)
+    return
 
 # Tests
 if __name__ == "__main__":
