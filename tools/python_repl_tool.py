@@ -1,137 +1,101 @@
-from typing import Dict, Tuple, Optional
-import multiprocessing
 import ast
-import time
-from contextlib import redirect_stderr, redirect_stdout
-import io
+import multiprocessing as mp
 
-from pydantic import BaseModel
-from langchain_core.tools import tool
+from typing import Optional, List, Tuple
 
 
-# =========================================================================
-# OUTPUT SCHEMA
-# NOTE: Adopt this later into output_schemas.py
-# =========================================================================
-
-class ExecutionResult(BaseModel):
-    code: str
-    stdout: str
-    stderr: str
-    return_value: str
-    success: bool
-    execution_time: float
-    execution_mode: str
-
-# =========================================================================
-# PERSISTENT GLOBALS FOR EXECUTION CONTEXT
-# =========================================================================
-
-_GLOBALS: Dict = {"__builtins__": __builtins__}
-
-
-def extract_last_expr(code: str) -> Tuple[Optional[str], str]:
+def extract_last_expression(code: str) -> Tuple[Optional[List[str]], str, Optional[SyntaxError]]:
     """
-    Check if the last line is an expression and extract it.
-    Returns: (last_expression, remaining_code)
-    """
-    try:
-        tree = ast.parse(code)
-        if not tree.body:
-            return None, code
-        
-        last_node = tree.body[-1]
-        
-        if isinstance(last_node, ast.Expr):
-            lines = code.strip().split('\n')
-            last_line = lines[-1].strip()
-            rest = '\n'.join(lines[:-1]) if len(lines) > 1 else ""
-            return last_line, rest
-        else:
-            return None, code
-    except SyntaxError:
-        return None, code    
+    Docstring for extract_last_expression
+    
+    :param code: Description
+    :type code: str
+    :return: Description
+    :rtype: Tuple[List[str] | None, str, SyntaxError | None]
 
-def worker(
-        code: str,
-        globals: Dict,
-        queue: multiprocessing.Queue,
-        execution_mode: str
-) -> None:
-    result = {
-        "stdout": "",
-        "stderr": "",
-        "return_value": None,
-        "success": False
-    }
+    - Catches SyntaxError
+    """
 
     try:
-        last_expr, remaining_code = extract_last_expr(code)
+        parsed_code = ast.parse(code)
+    except SyntaxError as e:
+        return None, "", e
+    
+    body = parsed_code.body
+    last_node = body[-1]
 
-        stdout_buffer = io.StringIO()
-        stderr_buffer = io.StringIO()
+    lines = code.strip().splitlines()
+    if isinstance(last_node, ast.Expr):
 
-        with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
-            if remaining_code:
-                exec(remaining_code, globals)
+        statements = lines[:-1] if len(lines) > 1 else None
+        expr = lines[-1].strip()
 
-            if last_expr:
-                result["return_value"] = eval(last_expr, globals)
+        return (statements, expr, None)
+    else:
+        return (lines, "", None)
 
-        result["stdout"] = stdout_buffer.getvalue()
-        result["stderr"] = stderr_buffer.getvalue()
-        result["success"] = True
-    except Exception as e:
-        result["stderr"] += str(e)
-    finally:
-        queue.put(result)
 
-def _execute_code(
-        code: str,
-        globals: Dict,
-        execution_mode: str,
-        timeout: int = 30,
-):
-    start_time = time.time()
+def execute_code_in_new_process(code: str, namespace: dict, timeout: int = 10) -> Optional[str]:
+    """
+    Executes the given Python code and returns the output or error message.
 
-    queue = multiprocessing.Queue()
-    process = multiprocessing.Process(
-        target=worker, 
-        args=(code, globals, queue, execution_mode)
+    Args:
+        code (str): The Python code to execute.
+    """
+
+    statements, expr, syntax_error = extract_last_expression(code)
+    if syntax_error:
+        return f"SyntaxError: {syntax_error}"
+    
+    queue = mp.Queue()
+    process = mp.Process(
+        target=_target, 
+        args=(
+            statements,
+            expr,
+            queue,
+            namespace
+            )
         )
     
-    # Start the process
     process.start()
-
-    # Wait for the process to finish or timeout
     process.join(timeout)
     if process.is_alive():
         process.terminate()
-        return ExecutionResult(
-            code=code,
-            stdout="",
-            stderr="Execution timed out.",
-            return_value="",
-            success=False,
-            execution_time=time.time() - start_time,
-            execution_mode=execution_mode
-        )
+        return "Error: Execution timed out."
     else:
         result = queue.get()
-        return ExecutionResult(
-            code=code,
-            stdout=result.get("stdout"),
-            stderr=result.get("stderr"),
-            return_value=str(result.get("return_value")),
-            success=result.get("success"),
-            execution_time=time.time() - start_time,
-            execution_mode=execution_mode
-        )
-    
-@tool
-def execute_code_isolated(code: str) -> ExecutionResult:
-    pass
+        return result
 
-@tool
-def execute_code_persistent(code: str) -> ExecutionResult:
-    pass
+def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespace: dict):
+    """
+    Docstring for _target
+    
+    :param statements: Description
+    :type statements: Optional[List[str]]
+    :param expr: Description
+    :type expr: str
+    :param queue: Description
+    :type queue: mp.Queue
+    :param namespace: Description
+    :type namespace: dict
+
+    - Catches Any Exception (SyntaxError should be caught earlier)
+    """
+    try:
+        # If there are statements, execute them with namespace 
+        if statements:
+            exec("\n".join(statements), namespace)
+
+        if expr != "":
+            result = eval(expr, namespace)
+        else:
+            result = None
+    
+    # Catches Any Exception (SyntaxError should be caught earlier)
+    except Exception as e:
+        queue.put(f"Error: {e}")
+
+    finally:
+        queue.put(repr(result))
+
