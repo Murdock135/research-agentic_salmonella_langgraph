@@ -3,6 +3,16 @@ import multiprocessing as mp
 
 from typing import Optional, List, Tuple
 
+_PERSISTENT_NAMESPACE = {}
+
+def execute_code(code: str, persist_namespace: bool = False, timeout: int = 10) -> dict:
+    if persist_namespace:
+        namespace = _PERSISTENT_NAMESPACE # Use module-level namespace for persistence
+    else:
+        namespace = {} # Fresh namespace for non-persistent execution
+    
+    return _execute_code_in_new_process(code, timeout=timeout, new_namespace=namespace, persist_namespace=persist_namespace)
+    
 
 def extract_last_expression(code: str) -> Tuple[Optional[List[str]], str, Optional[SyntaxError]]:
     """
@@ -22,6 +32,9 @@ def extract_last_expression(code: str) -> Tuple[Optional[List[str]], str, Option
         return None, "", e
     
     body = parsed_code.body
+    if not body:
+        return None, "", None
+
     last_node = body[-1]
 
     lines = code.strip().splitlines()
@@ -35,7 +48,7 @@ def extract_last_expression(code: str) -> Tuple[Optional[List[str]], str, Option
         return (lines, "", None)
 
 
-def execute_code_in_new_process(code: str, namespace: dict, timeout: int = 10) -> Optional[str]:
+def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Optional[dict] = None, persist_namespace: bool = False) -> dict:
     """
     Executes the given Python code and returns the output or error message.
 
@@ -45,7 +58,12 @@ def execute_code_in_new_process(code: str, namespace: dict, timeout: int = 10) -
 
     statements, expr, syntax_error = extract_last_expression(code)
     if syntax_error:
-        return f"SyntaxError: {syntax_error}"
+        return {
+            "output": "",
+            "error": f"SyntaxError: {syntax_error}",
+            "namespace": new_namespace,
+            "success": False,
+        }
     
     queue = mp.Queue()
     process = mp.Process(
@@ -54,18 +72,29 @@ def execute_code_in_new_process(code: str, namespace: dict, timeout: int = 10) -
             statements,
             expr,
             queue,
-            namespace
+            new_namespace
             )
         )
     
     process.start()
     process.join(timeout)
+
     if process.is_alive():
         process.terminate()
-        return "Error: Execution timed out."
+        result = {
+            "output": "",
+            "error": "Error: Code execution timed out.",
+            "namespace": new_namespace,
+            "success": False,
+        }
     else:
         result = queue.get()
-        return result
+
+    # Update the namespace if execution was successful and persistence is desired
+    if result["success"] and persist_namespace:
+            new_namespace.update(result["namespace"])
+    
+    return result
 
 def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespace: dict):
     """
@@ -82,20 +111,40 @@ def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespa
 
     - Catches Any Exception (SyntaxError should be caught earlier)
     """
+    result = {
+        "output": "",
+        "error": "",
+        "namespace": namespace,
+        "success": False,
+    }
+
     try:
         # If there are statements, execute them with namespace 
         if statements:
             exec("\n".join(statements), namespace)
 
         if expr != "":
-            result = eval(expr, namespace)
-        else:
-            result = None
+            result["output"] = eval(expr, namespace)
+
+        result["success"] = True
     
     # Catches Any Exception (SyntaxError should be caught earlier)
     except Exception as e:
-        queue.put(f"Error: {e}")
+        result["error"] += f"{type(e).__name__}: {e}"
 
     finally:
-        queue.put(repr(result))
+        queue.put(result)
 
+if __name__ == "__main__":    
+    print("Testing code execution in a new process...")
+
+    code_snippet = """
+x = 10
+y = 20
+x + y
+                    """
+    output = execute_code(code_snippet, persist_namespace=True)
+    print(output.get("output"))  # Expected: 30
+
+    output = execute_code("x * 2", persist_namespace=True)
+    print(output.get("output"))  # Expected: 20
