@@ -1,60 +1,15 @@
-import ast
 import multiprocessing as mp
 
-from typing import Optional, List, Tuple
+from typing import Optional, List
+
+from tools.python_repl.ast_utils import extract_last_expression
 
 # TODO:
 """todo:
 - Convert the execute_code into a langchain tool.
 - Implment structured output.
 - Allow for third party library imports.
-
 """
-
-_PERSISTENT_NAMESPACE = {}
-
-def execute_code(code: str, persist_namespace: bool = False, timeout: int = 10) -> dict:
-    if persist_namespace:
-        namespace = _PERSISTENT_NAMESPACE # Use module-level namespace for persistence
-    else:
-        namespace = {} # Fresh namespace for non-persistent execution
-    
-    return _execute_code_in_new_process(code, timeout=timeout, new_namespace=namespace, persist_namespace=persist_namespace)
-    
-
-def extract_last_expression(code: str) -> Tuple[Optional[List[str]], str, Optional[SyntaxError]]:
-    """
-    Docstring for extract_last_expression
-    
-    :param code: Description
-    :type code: str
-    :return: Description
-    :rtype: Tuple[List[str] | None, str, SyntaxError | None]
-
-    - Catches SyntaxError
-    """
-
-    try:
-        parsed_code = ast.parse(code)
-    except SyntaxError as e:
-        return None, "", e
-    
-    body = parsed_code.body
-    if not body:
-        return None, "", None
-
-    last_node = body[-1]
-
-    lines = code.strip().splitlines()
-    if isinstance(last_node, ast.Expr):
-
-        statements = lines[:-1] if len(lines) > 1 else None
-        expr = lines[-1].strip()
-
-        return (statements, expr, None)
-    else:
-        return (lines, "", None)
-
 
 def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Optional[dict] = None, persist_namespace: bool = False) -> dict:
     """
@@ -142,17 +97,3 @@ def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespa
 
     finally:
         queue.put(result)
-
-if __name__ == "__main__":    
-    print("Testing code execution in a new process...")
-
-    code_snippet = """
-x = 10
-y = 20
-x + y
-                    """
-    output = execute_code(code_snippet, persist_namespace=True)
-    print(output.get("output"))  # Expected: 30
-
-    output = execute_code("x * 2", persist_namespace=True)
-    print(output.get("output"))  # Expected: 20

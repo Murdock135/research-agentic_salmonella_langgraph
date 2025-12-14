@@ -1,0 +1,35 @@
+[stdlib]
+blocked = [
+    "subprocess",
+    "threading",
+    "multiprocessing",
+    "os",
+    "sys",
+    "socket",
+    "shutil",
+
+]
+safe = [
+    "math",
+    "json",
+    "re",
+    "datetime",
+    "functools",
+    "itertools",
+    "collections",
+    "random",
+    "string",
+    "time",
+    "statistics",
+]
+
+[third_party]
+whitelisted = [
+    "numpy",
+    "pandas",
+    "statsmodels",
+    "scipy",
+    "matplotlib",
+    "seaborn",
+    "plotly",
+    ]
