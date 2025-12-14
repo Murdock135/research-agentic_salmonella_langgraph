@@ -3,6 +3,14 @@ import multiprocessing as mp
 
 from typing import Optional, List, Tuple
 
+# TODO:
+"""todo:
+- Convert the execute_code into a langchain tool.
+- Implment structured output.
+- Allow for third party library imports.
+
+"""
+
 _PERSISTENT_NAMESPACE = {}
 
 def execute_code(code: str, persist_namespace: bool = False, timeout: int = 10) -> dict:
