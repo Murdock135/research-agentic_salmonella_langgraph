@@ -3,6 +3,7 @@ import multiprocessing as mp
 from typing import Optional, List
 
 from tools.python_repl.ast_utils import extract_last_expression
+from tools.python_repl.namespace import get_persistent_namespace
 
 # TODO:
 """todo:
@@ -10,6 +11,15 @@ from tools.python_repl.ast_utils import extract_last_expression
 - Implment structured output.
 - Allow for third party library imports.
 """
+
+def execute_code(code: str, persist_namespace: bool = False, timeout: int = 10) -> dict:
+    if persist_namespace:
+        namespace = get_persistent_namespace() # Use module-level namespace for persistence
+    else:
+        namespace = {} # Fresh namespace for non-persistent execution
+    
+    return _execute_code_in_new_process(code, timeout=timeout, new_namespace=namespace, persist_namespace=persist_namespace)
+
 
 def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Optional[dict] = None, persist_namespace: bool = False) -> dict:
     """
@@ -97,3 +107,17 @@ def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespa
 
     finally:
         queue.put(result)
+
+if __name__ == "__main__":    
+    print("Testing tool python repl tool")
+
+    code_snippet = """
+x = 10
+y = 20
+x + y
+                    """
+    output = execute_code(code_snippet, persist_namespace=True)
+    print(output.get("output"))  # Expected: 30
+
+    output = execute_code("x * 2", persist_namespace=True)
+    print(output.get("output"))  # Expected: 20
