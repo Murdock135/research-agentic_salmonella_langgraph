@@ -1,12 +1,13 @@
 from config.config import Config
 from functools import partial
 
-from nodes.planner import planner_node
-from nodes.executor import executor_node
-from nodes.router import router_func, router_node
-from nodes.aggregator import aggregator_node
-from nodes.saver import saver_node
-from schemas.state import State
+from sparq.nodes.planner import planner_node
+from sparq.nodes.executor import executor_node
+from sparq.nodes.router import router_func, router_node
+from sparq.nodes.aggregator import aggregator_node
+from sparq.nodes.saver import saver_node
+from sparq.schemas.state import State
+from sparq.utils.helpers import get_llm
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import RetryPolicy
@@ -20,9 +21,7 @@ class Agentic_system:
         self.llms = self._get_llms()
         self.prompts = config.load_prompts()
 
-    def _get_llms(self):
-        from utils.helpers import get_llm
-        
+    def _get_llms(self):        
         router_config = self.llm_config['router']
         explorer_config = self.llm_config['explorer']
         planner_config = self.llm_config['planner']

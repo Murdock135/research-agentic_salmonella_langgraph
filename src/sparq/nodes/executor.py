@@ -1,6 +1,6 @@
-from schemas.state import State
-from schemas.output_schemas import Plan, ExecutorOutput
-from tools import tools
+from sparq.schemas.state import State
+from sparq.schemas.output_schemas import Plan, ExecutorOutput
+from sparq.tools import tools
 
 from langchain_core.prompts import BasePromptTemplate, PromptTemplate
 from langchain_core.messages import SystemMessage
@@ -82,7 +82,7 @@ def executor_node(state: State, **kwargs):
 def test_executor(plan: Plan):
     print(f"Testing executor node with sample plan: \n {plan.pretty_print()}")
     from config.config import Config
-    from utils import helpers
+    from sparq.utils import helpers
     
     config = Config()
     llm = helpers.get_llm(model='o3-mini')
@@ -102,7 +102,7 @@ def test_executor(plan: Plan):
         print(result)
 
 if __name__ == "__main__":
-    from schemas.output_schemas import Step
+    from sparq.schemas.output_schemas import Step
 
     sample_plan = Plan(
         steps=[

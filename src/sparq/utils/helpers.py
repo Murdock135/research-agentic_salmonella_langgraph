@@ -7,7 +7,6 @@ from rich.table import Table
 
 import os
 import subprocess
-import argparse
 
 import json
 import pandas as pd
@@ -34,45 +33,6 @@ def save_text(text, filepath, time_stamp=True):
     with open(file_path, 'w') as f:
         f.write(text)
 
-def load_dataset(file_path, sheet_name=None):
-    import pandas as pd
-
-    """
-    Loads a dataset from either a CSV or an Excel sheet.
-    Args:
-        file_path (str): Path to the dataset file.
-        sheet_name (str, optional): Name of the Excel sheet to load. Defaults to None.
-    Returns:
-    """
-    if file_path.endswith('.csv'):
-        return pd.read_csv(file_path)
-    elif file_path.endswith('.xlsx') and sheet_name:
-        return pd.read_excel(file_path, sheet_name=sheet_name)
-    else:
-        raise ValueError("Unsupported file format or missing sheet name for Excel file.")
-
-def get_data_paths(root):
-    tree_str = ""
-    for dirpath, dirnames, filenames in os.walk(root):
-        print("Directory:", dirpath)
-        print("Subdirectories:", dirnames)
-        print("Files:", filenames)
-        
-        tree_str += f"Directory: {dirpath}\n"
-        tree_str += f"Subdirectories: {dirnames}\n"
-        tree_str += f"Files: {filenames}\n"
-        tree_str += "\n"
-        
-    return tree_str
-
-def get_data_paths_bash_tree(root):
-    import subprocess
-
-    try:
-        output = subprocess.check_output(['tree', root], text=True)
-    except Exception as e:
-        output = f"Error running tree command: {e}"
-    return output
 
 def get_df_summary(df: DataFrame):
     summary = DataFrame({
@@ -234,14 +194,6 @@ def get_user_query(args=None, config=None):
 
     return user_query
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Run Agentic system for QA")
-    parser.add_argument('--test', action="store_true", help="Use a test query")
-    parser.add_argument('--ollama', action="store_true", help="Use ollama backend")
-    parser.add_argument('--openrouter', action="store_true", help="Use openrouter backend")
-    parser.add_argument("--model", type=str, help="Model name")
-    return parser.parse_args()
-
 def dump_dict_to_json(dict, save_path):
     """
     Dumps a dictionary to a JSON file.
@@ -267,10 +219,6 @@ def load_data_manifest(path_to_manifest_file) -> dict[str, dict[str, str]]:
         manifest: dict = json.load(f)
     
     return manifest
-    
-def check_data_manifest(path_to_manifest_file):
-    pass
-
 
 def get_data_repoIDs(path_to_manifest_file):
     """
@@ -320,9 +268,10 @@ def render_records_table(records: List[Dict], columns: Optional[List[str]] = Non
 
 # Tests
 if __name__ == "__main__":   
-    from sparq.config.config import Config
-     
+    from config.config import Config
+
     config = Config()
+    breakpoint()
     manifest_path = os.path.join(config.BASE_DIR, "data_manifest.json")
     manifest_dict= load_data_manifest(manifest_path)
     

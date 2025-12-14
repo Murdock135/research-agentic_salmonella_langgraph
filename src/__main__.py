@@ -1,11 +1,9 @@
-# custom
-from sparq.config.config import Config
-from sparq.utils import helpers
 
+from config.config import Config
+from sparq.utils import helpers
+from sparq.system import Agentic_system
 import argparse
 import asyncio
-
-from .system import Agentic_system
 
 def main():
     config = Config()

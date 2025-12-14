@@ -2,7 +2,7 @@ import os
 import datetime
 from pathlib import Path
 
-from sparq.config.load_env import load_env_vars
+from load_env import load_env_vars
 from sparq.utils.helpers import load_text
 
 class Config:
@@ -97,6 +97,7 @@ class Config:
 if __name__ == "__main__":
     config = Config()
     print("Base Directory: ", config.BASE_DIR)
+    breakpoint()
     # print("Data Directory: ", config.DATA_DIR)
     # print("Raw Data Directory: ", config.RAW_DATA_DIR)
     # print("Processed Data Directory: ", config.PROCESSED_DATA_DIR)
