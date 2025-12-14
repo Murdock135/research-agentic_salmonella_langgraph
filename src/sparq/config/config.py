@@ -2,9 +2,8 @@ import os
 import datetime
 from pathlib import Path
 
-from utils.helpers import load_text, check_data_manifest
-from .load_env import load_env_vars
-
+from sparq.config.load_env import load_env_vars
+from sparq.utils.helpers import load_text
 
 class Config:
     def __init__(self):
@@ -56,15 +55,7 @@ class Config:
         
         for dir in llm_output_dirs:
             os.makedirs(dir, exist_ok=True)
-    
-    def get_selected_data_paths(self):
-        return {
-            'mmg': self.SELECTED_MMG_DIR,
-            'nors': self.SELECTED_NORS_DIR,
-            'svi': self.SELECTED_SVI_DIR,
-            'socioecono_salmonella': self.SELECTED_SOCIOECONO_SALMONELLA
-        }
-    
+        
     def load_prompts(self):
         return {
             'router_prompt': load_text(self.ROUTER_PROMPT_PATH),
@@ -101,16 +92,6 @@ class Config:
         os.makedirs(RUN_OUTPUT_DIR, exist_ok=True)
         
         return RUN_OUTPUT_DIR
-    
-    
-    def get_data_repoIDs(self, path_to_manifest_file):
-        """
-        Get the repository IDs of datasets from the manifest file.
-        """
-        manifest = self.load_data_manifest(path_to_manifest_file)
-        repo_ids = {dataset: info['repo_id'] for dataset, info in manifest.items() if 'repo_id' in info}
-        
-        return repo_ids
     
 # Create main guard to test the Config class
 if __name__ == "__main__":

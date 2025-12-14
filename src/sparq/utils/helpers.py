@@ -1,8 +1,18 @@
 # utils.py
+from typing import Dict, List, Optional
+
 from pandas import DataFrame
-from typing import List, Dict, Optional
 from rich.console import Console
 from rich.table import Table
+
+import os
+import subprocess
+import argparse
+
+import json
+import pandas as pd
+from pathlib import Path
+
 
 def load_text(file_path):
     """Loads text from a file."""
@@ -93,7 +103,7 @@ def get_df_summary_from_excel(file_path) -> dict[str, str]:
         
         try:
             summary = get_df_summary(df)
-        except Exception as e:
+        except Exception:
             raise Exception(f"could not summarise: {file_path}'s sheet {sheet_name} to markdown")
             
         df_summaries[sheet_name] = summary
@@ -110,10 +120,8 @@ def get_df_summaries_from_manifest(manifest: dict[str, dict[str, str]]) -> dict[
     Returns:
         dict: Dictionary with sheet names as keys and data summaries (columns, non null counts, dtypes) in markdown format as values.
     """
-    from tools.tools import find_csv_excel_files, get_cached_dataset_path
-    from pathlib import Path
-    import pandas as pd
-    
+    from sparq.tools.tools import get_cached_dataset_path, find_csv_excel_files
+
     df_summaries = {}
     
     for dataset, info in manifest.items():
@@ -145,6 +153,7 @@ def get_llm(model='gpt-4o', provider='openai'):
     
     elif provider=='openrouter':
         import os
+
         from langchain_openai import ChatOpenAI
         
         try:
@@ -172,7 +181,7 @@ def get_llm(model='gpt-4o', provider='openai'):
         try:
             llm = ChatOllama(model=model)
             return llm
-        except ResponseError as e:
+        except ResponseError:
             choice = input(f"Model {model} not found. Do you want to pull it? (y/n): ")
             if choice.lower() == 'y':
                 pull_ollama_model(model)
@@ -193,11 +202,9 @@ def get_llm(model='gpt-4o', provider='openai'):
         raise ValueError(f"Provider '{provider} not supported. Please choose 'openai', 'openrouter', or 'ollama'.")
 
 
-def pull_ollama_model(model_name: str) -> None:
-    import subprocess
-    from config import Config
-    import os
-    
+def pull_ollama_model(model_name: str) -> None:   
+    from sparq.config.config import Config
+
     config = Config()
     project_dir = config.BASE_DIR
     download_script = os.path.join(project_dir, 'utils', 'dl_ollama_model.sh')
@@ -228,8 +235,6 @@ def get_user_query(args=None, config=None):
     return user_query
 
 def parse_args():
-    import argparse
-    
     parser = argparse.ArgumentParser(description="Run Agentic system for QA")
     parser.add_argument('--test', action="store_true", help="Use a test query")
     parser.add_argument('--ollama', action="store_true", help="Use ollama backend")
@@ -254,8 +259,6 @@ def load_data_manifest(path_to_manifest_file) -> dict[str, dict[str, str]]:
     """
     Load a data manifest file and return its contents.
     """
-    import json
-    import os
     
     if not os.path.exists(path_to_manifest_file):
         raise FileNotFoundError(f"Manifest file not found: {path_to_manifest_file}")
@@ -316,10 +319,9 @@ def render_records_table(records: List[Dict], columns: Optional[List[str]] = Non
     return
 
 # Tests
-if __name__ == "__main__":
-    import os
-    from config.config import Config
-    
+if __name__ == "__main__":   
+    from sparq.config.config import Config
+     
     config = Config()
     manifest_path = os.path.join(config.BASE_DIR, "data_manifest.json")
     manifest_dict= load_data_manifest(manifest_path)

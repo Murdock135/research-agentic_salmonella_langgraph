@@ -45,3 +45,6 @@ build/
 
 # Docker jrelated files
 docker-build.sh
+
+# Todo files
+*todo*

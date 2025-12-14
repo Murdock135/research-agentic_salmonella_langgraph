@@ -1,13 +1,13 @@
 # custom
-from config.config import Config
-from utils import helpers
+from sparq.config.config import Config
+from sparq.utils import helpers
 
 import argparse
 import asyncio
 
 from .system import Agentic_system
 
-if __name__ == "__main__":
+def main():
     config = Config()
 
     parser = argparse.ArgumentParser(description="Run the LangGraph application.")
@@ -18,3 +18,6 @@ if __name__ == "__main__":
 
     agentic_system_instance = Agentic_system(config=config)
     asyncio.run(agentic_system_instance.run(user_query=user_query))
+
+if __name__ == "__main__":
+    main()
