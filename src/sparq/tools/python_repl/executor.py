@@ -2,8 +2,8 @@ import multiprocessing as mp
 
 from typing import Optional, List
 
-from tools.python_repl.ast_utils import extract_last_expression
-from tools.python_repl.namespace import get_persistent_namespace
+from sparq.tools.python_repl.ast_utils import extract_last_expression
+from sparq.tools.python_repl.namespace import get_persistent_namespace
 
 # TODO:
 """todo:
