@@ -18,7 +18,7 @@ from rich import print
 class Agentic_system:
     def __init__(self, settings: Optional[Settings] = None):
         self.settings = settings or Settings() # Use default settings if none provided
-        self.llm_config = self.settings.load_llm_config()
+        self.llm_config = self.settings.LLM_CONFIG
         self.llms = self._get_llms()
         self.prompts = self.settings.load_prompts()
 

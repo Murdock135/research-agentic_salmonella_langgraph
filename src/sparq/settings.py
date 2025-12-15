@@ -21,7 +21,8 @@ class Settings:
         self.CONFIG = self.load_config(self.CONFIG_PATH)
 
         self.LLM_CONFIG = self.CONFIG['llm_config']
-        self.RUN_OUTPUT_DIR = self.CONFIG['output_paths']['RUN_OUTPUT_DIR']
+        self.RUN_OUTPUT_DIR = self.CONFIG['paths']['RUN_OUTPUT_DIR']
+        self.DATA_MANIFEST_PATH = self.CONFIG['paths']['DATA_MANIFEST_PATH']
         
         # Allow override of prompts directory
         self.PROMPTS_DIR = prompts_dir or (self.CONFIG["prompts_dir"])

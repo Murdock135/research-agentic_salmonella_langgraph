@@ -1,8 +1,9 @@
 test_query = "What are the main factors contributing to salmonella rates in Missouri in a statistical sense?"
 prompts_dir = "prompts/"
 
-[output_paths]
-RUN_OUTPUT_DIR = "~/tmp/sparq_runs"
+[paths]
+RUN_OUTPUT_DIR = "~/tmp/sparq/output"
+DATA_MANIFEST_PATH = "~/tmp/sparq/data/manifest.yaml"
 
 [llm_config]
 [llm_config.router]

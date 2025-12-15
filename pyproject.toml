@@ -32,7 +32,7 @@ dependencies = [
     "langchain-aws",
 ]
 [project.scripts]
-sparq = "sparq.core.main:main"
+sparq = "sparq.__main__:main"
 
 [build-system]
 requires = ["uv_build>=0.9.17,<0.10.0"]

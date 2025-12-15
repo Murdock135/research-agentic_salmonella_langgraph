@@ -1,6 +1,6 @@
 from sparq.schemas.state import State
 from sparq.schemas.output_schemas import Plan
-from config.config import Config
+from sparq.settings import Settings
 from sparq.utils import helpers
 
 from langgraph.prebuilt import create_react_agent
@@ -15,10 +15,10 @@ def planner_node(state: State, **kwargs):
     
     sys_prompt = kwargs['sys_prompt']
     llm = kwargs['llm']
-    config: Config = kwargs['config']
+    settings: Settings = kwargs['settings']
     
     # load manifest
-    manifest_path = config.DATA_MANIFEST_PATH    
+    manifest_path = settings.DATA_MANIFEST_PATH    
     manifest: dict = helpers.load_data_manifest(manifest_path)
     manifest_str = str(manifest)
     

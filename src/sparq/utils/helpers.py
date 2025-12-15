@@ -267,14 +267,14 @@ def render_records_table(records: List[Dict], columns: Optional[List[str]] = Non
     return
 
 # Tests
-if __name__ == "__main__":   
-    from config.config import Config
+# if __name__ == "__main__":   
+#     from config.config import Config
 
-    config = Config()
-    breakpoint()
-    manifest_path = os.path.join(config.BASE_DIR, "data_manifest.json")
-    manifest_dict= load_data_manifest(manifest_path)
+#     config = Config()
+#     breakpoint()
+#     manifest_path = os.path.join(config.BASE_DIR, "data_manifest.json")
+#     manifest_dict= load_data_manifest(manifest_path)
     
-    df_heads = get_df_summaries_from_manifest(manifest_dict)
+#     df_heads = get_df_summaries_from_manifest(manifest_dict)
     
-    print(df_heads)
+#     print(df_heads)
