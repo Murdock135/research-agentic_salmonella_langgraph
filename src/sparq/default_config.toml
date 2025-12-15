@@ -4,6 +4,7 @@ prompts_dir = "prompts/"
 [paths]
 OUTPUT_DIR = "~/tmp/sparq/output"
 DATA_MANIFEST_PATH = "~/.config/sparq/data/manifest.json"
+API_KEYS_PATH = "~/.config/sparq/api_keys.toml"
 
 [llm_config]
 [llm_config.router]

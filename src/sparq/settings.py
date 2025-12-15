@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict
 import os
+import sys
 
 class Settings:
     """Default settings for SPARQ with sensible defaults.
@@ -12,12 +13,17 @@ class Settings:
     - config_path: Path to the LLM configuration TOML file.
     - prompts_dir: Directory containing prompt text files.
     """
-    
     def __init__(self, prompts_dir: Path = None, config_path: Path = None):
+        # Load environment variables
+        self._load_env_variables()
+        self._verify_env_variables()
+
         # Set package and project root directories
         self.PACKAGE_DIR = Path(__file__).parent
         self.PROJECT_ROOT = Path(__file__).parent.parent.parent
-        self._verify_project_root()
+
+        if os.isatty(0):
+            self._verify_project_root()
 
         # Load configuration
         self.CONFIG_PATH = config_path or (self.PACKAGE_DIR / "default_config.toml")
@@ -95,7 +101,26 @@ class Settings:
                 self.PROJECT_ROOT = Path(os.path.expanduser(new_path)).resolve()
             except Exception as e:
                 raise ValueError(f"Invalid path provided: {new_path}") from e
-        
+    
+    def _load_env_variables(self):
+        """Load environment variables from a .env file if it exists."""
+        from dotenv import load_dotenv
+
+        env_path = self.PROJECT_ROOT / ".env"
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path)
+
+    def _verify_env_variables(self):
+        """List all loaded environment variables."""
+        print("Loaded Environment Variables:\n")
+        for key, value in os.environ.items():
+            print(f"{key}: {value}")
+
+        user_input = input("Do you want to continue? (y/n): ")
+        if user_input.lower() != 'y':
+            print("Exiting program.")
+            sys.exit(0)
+    
 
 
 
