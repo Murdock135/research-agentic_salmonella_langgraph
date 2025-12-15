@@ -1,4 +1,4 @@
-from tools.python_repl.executor import execute_code
+from sparq.tools.python_repl.executor import execute_code
 
 from langchain.tools import tool
 
