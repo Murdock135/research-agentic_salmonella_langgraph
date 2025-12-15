@@ -10,3 +10,4 @@
 5. Create a cli utility to load environment variables from a specified .env file.
 6. Implement conventional CLI behaviours such as keeping config in `~/.config/sparq/config.json` and allowing override via `--config` flag.
 7. Allow developers to override settings via subclassing Settings object.
+8. Create two methods `get_user_query_direct` and `get_user_query_config` and use them inside `get_user_query` method to allow for optional direct query input or config-based query input.

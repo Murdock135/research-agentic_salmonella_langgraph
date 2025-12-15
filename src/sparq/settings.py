@@ -3,6 +3,8 @@ from typing import Dict
 import os
 import sys
 
+import appdirs as ad
+
 class Settings:
     """Default settings for SPARQ with sensible defaults.
     

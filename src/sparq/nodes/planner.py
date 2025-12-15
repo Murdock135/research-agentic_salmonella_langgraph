@@ -10,6 +10,16 @@ from langchain_core.prompts import BasePromptTemplate, PromptTemplate
 def planner_node(state: State, **kwargs):
     """
     Create a plan to answer the user query
+
+    Args:
+        state (State): The current state containing the user query.
+        **kwargs: Additional keyword arguments including:
+            - sys_prompt (str): The system prompt template for the planner.
+            - llm: The language model to use for planning.
+            - settings (Settings): The settings object containing configuration.
+
+    Returns:
+        dict: A dictionary containing the generated plan, data manifest, and dataframe summaries.
     """
     print("Making a plan to answer your query")
     

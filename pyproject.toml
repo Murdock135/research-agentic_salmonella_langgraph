@@ -30,6 +30,7 @@ dependencies = [
     "tiktoken==0.9.0",
     "tqdm==4.67.1",
     "langchain-aws",
+    "appdirs>=1.4.4",
 ]
 [project.scripts]
 sparq = "sparq.__main__:main"
