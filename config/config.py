@@ -2,7 +2,7 @@ import os
 import datetime
 from pathlib import Path
 
-from load_env import load_env_vars
+from .load_env import load_env_vars
 from sparq.utils.helpers import load_text
 from sparq.settings import Settings
 

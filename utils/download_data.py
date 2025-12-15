@@ -5,7 +5,7 @@
 from huggingface_hub import snapshot_download
 
 from config.load_env import load_env_vars
-from .helpers import dump_dict_to_json
+from sparq.utils.helpers import dump_dict_to_json
 from config.config import Config
 import os
 
