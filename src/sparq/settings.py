@@ -15,20 +15,17 @@ class Settings:
     - config_path: Path to the LLM configuration TOML file.
     - prompts_dir: Directory containing prompt text files.
     """
-    def __init__(self, prompts_dir: Path = None, config_path: Path = None):
+    def __init__(self, prompts_dir: Path = None, config_path: Path = None, env_path: Path = None):
         # Set package and project root directories
         self.PACKAGE_DIR = Path(__file__).parent
         self.PROJECT_ROOT = Path(__file__).parent.parent.parent
 
-        if os.isatty(0):
-            self._verify_project_root()
-
-        # Load environment variables from .env file if it exists
-        self._load_env_variables()
-        self._verify_env_variables()
-
         # Create .config/sparq directory
-        self._create_dot_config_dir()
+        self.USER_CONFIG_DIR = Path(ad.user_config_dir("sparq"))
+        self.USER_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+
+        # Load environment variables from .env file
+        self._load_env_variables(env_path)
 
         # Load configuration
         self.CONFIG_PATH = config_path or (self.PACKAGE_DIR / "default_config.toml")
@@ -85,11 +82,6 @@ class Settings:
         
         return config
     
-    def _create_dot_config_dir(self):
-        """Create a ~/.config/sparq directory if it doesn't exist."""
-        sparq_config_dir = Path.home() / ".config" / "sparq"
-        sparq_config_dir.mkdir(parents=True, exist_ok=True)
-    
     def _create_output_dirs(self):
         """Create output directories if they don't exist."""
         dirs = [
@@ -101,36 +93,31 @@ class Settings:
         ]
         for dir in dirs:
             os.makedirs(dir, exist_ok=True)
-
-    def _verify_project_root(self):
-        """Ask user to confirm the project root directory."""
-        user_input = input(f"Is '{self.PROJECT_ROOT}' the correct project root? (y/n): ")
-        if user_input.lower() != 'y':
-            new_path = input("Please enter the correct project root path: ")
-
-            try:
-                self.PROJECT_ROOT = Path(os.path.expanduser(new_path)).resolve()
-            except Exception as e:
-                raise ValueError(f"Invalid path provided: {new_path}") from e
     
-    def _load_env_variables(self):
+    def _load_env_variables(self, env_path: Path = None):
         """Load environment variables from a .env file if it exists."""
         from dotenv import load_dotenv
 
-        env_path = self.PROJECT_ROOT / ".env"
+        env_path = self.USER_CONFIG_DIR / ".env" if env_path is None else env_path
         if env_path.exists():
             load_dotenv(dotenv_path=env_path)
-
-    def _verify_env_variables(self):
-        """List all loaded environment variables."""
-        print("Loaded Environment Variables:\n")
-        for key, value in os.environ.items():
-            print(f"{key}: {value}")
-
-        user_input = input("Do you want to continue? (y/n): ")
-        if user_input.lower() != 'y':
-            print("Exiting program.")
-            sys.exit(0)
+        else:
+            self._create_template_env_file(env_path)
+    
+    def _create_template_env_file(self, env_path: Path):
+        """Create a template .env file with placeholder values."""
+        template = """# SPARQ .env file template
+# Replace the placeholder values with your actual API keys and configurations
+# GOOGLE_API_KEY=your_google_api_key_here
+# OPENAI_API_KEY=your_openai_api_key_here
+# LANSMITH_API_KEY=your_lansmith_api_key_here
+# LANGSMITH_PROJECT_NAME=your_project_name_here
+# LANGSMITH_TRACING=true
+# OTHER_API_KEY=your_other_api_key_here
+# """
+        with open(env_path, "w") as f:
+            f.write(template)
+        print(f"Template .env file created at {env_path}. Please update it with your actual values.")
     
 
 if __name__ == "__main__":
