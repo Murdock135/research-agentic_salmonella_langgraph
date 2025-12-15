@@ -25,6 +25,9 @@ class Settings:
         self._load_env_variables()
         self._verify_env_variables()
 
+        # Create .config/sparq directory
+        self._create_dot_config_dir()
+
         # Load configuration
         self.CONFIG_PATH = config_path or (self.PACKAGE_DIR / "default_config.toml")
         self.CONFIG = self.load_config(self.CONFIG_PATH)
@@ -32,6 +35,7 @@ class Settings:
         self.LLM_CONFIG = self.CONFIG['llm_config']
         self.OUTPUT_DIR = Path(os.path.expanduser(self.CONFIG['paths']['OUTPUT_DIR']))
         self.DATA_MANIFEST_PATH = Path(os.path.expanduser(self.CONFIG['paths']['DATA_MANIFEST_PATH']))
+        self.DATA_MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
 
         # Set output directories for different agents
         self.ROUTER_OUTPUT_DIR = self.OUTPUT_DIR / "router"
@@ -43,7 +47,7 @@ class Settings:
         self._create_output_dirs()
         
         # Allow override of prompts directory
-        self.PROMPTS_DIR = prompts_dir or (self.CONFIG["prompts_dir"])
+        self.PROMPTS_DIR = prompts_dir or self.PACKAGE_DIR / self.CONFIG['paths']['PROMPTS_DIR']
         self.PROMPTS_DIR = Path(self.PROMPTS_DIR)
     
     def load_prompts(self) -> Dict[str, str]:
@@ -78,6 +82,11 @@ class Settings:
             config = tomllib.load(f)
         
         return config
+    
+    def _create_dot_config_dir(self):
+        """Create a ~/.config/sparq directory if it doesn't exist."""
+        sparq_config_dir = Path.home() / ".config" / "sparq"
+        sparq_config_dir.mkdir(parents=True, exist_ok=True)
     
     def _create_output_dirs(self):
         """Create output directories if they don't exist."""

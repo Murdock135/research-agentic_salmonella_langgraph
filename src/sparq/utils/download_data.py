@@ -3,11 +3,10 @@
 # Optional: Read https://huggingface.co/docs/datasets/en/cache and https://huggingface.co/docs/datasets/load_hub#configurationsto understand how to load the downloaded datasets.
 
 from huggingface_hub import snapshot_download
-
-from config.load_env import load_env_vars
 from sparq.utils.helpers import dump_dict_to_json
-from config.config import Config
 import os
+
+from sparq.settings import Settings
 
 REPO_ID = "zayanhugsAI"
 datasets = [
@@ -41,8 +40,7 @@ def main():
     """
     Main function to download all datasets.
     """
-    load_env_vars()
-    config = Config()
+    settings = Settings()
     HF_TOKEN = os.getenv("HF_TOKEN")
     print(f"Using Hugging Face token: {HF_TOKEN}")
 
@@ -66,7 +64,8 @@ def main():
             "repo_id": f"{REPO_ID}/{dataset}"
         }
 
-    data_manifest_path = config.DATA_MANIFEST_PATH
+    data_manifest_path = settings.DATA_MANIFEST_PATH
+    breakpoint()
     dump_dict_to_json(manifest, data_manifest_path)
 
 if __name__ == "__main__":

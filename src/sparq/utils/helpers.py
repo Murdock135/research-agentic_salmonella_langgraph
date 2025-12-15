@@ -203,9 +203,17 @@ def dump_dict_to_json(dict, save_path):
         save_path (str): The path where the JSON file will be saved.
     """
     import json
-    with open(save_path, 'w') as f:
-        json.dump(dict, f, indent=4)
-    print(f"Dictionary dumped to {save_path}")
+
+    if isinstance(save_path, Path):
+        save_path = str(save_path)
+
+    try:
+        with open(save_path, 'w') as f:
+            json.dump(dict, f, indent=4)
+        
+        print(f"Dictionary successfully saved to {save_path}")
+    except Exception as e:
+        raise IOError(f"Could not write to file {save_path}:\n{e}")
     
 def load_data_manifest(path_to_manifest_file) -> dict[str, dict[str, str]]:
     """
