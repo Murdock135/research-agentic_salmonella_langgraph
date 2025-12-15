@@ -4,6 +4,7 @@ from typing import Optional, List
 
 from sparq.tools.python_repl.ast_utils import extract_last_expression
 from sparq.tools.python_repl.namespace import get_persistent_namespace
+from sparq.tools.python_repl.package_manager import PackageUtils as putils
 
 # TODO:
 """todo:
@@ -18,7 +19,20 @@ def execute_code(code: str, persist_namespace: bool = False, timeout: int = 10) 
     else:
         namespace = {} # Fresh namespace for non-persistent execution
     
-    return _execute_code_in_new_process(code, timeout=timeout, new_namespace=namespace, persist_namespace=persist_namespace)
+    result = _execute_code_in_new_process(code, timeout=timeout, new_namespace=namespace, persist_namespace=persist_namespace)
+
+    # On import error, install the package if whitelisted and retry execution
+    if result["error"] and "ModuleNotFoundError" in result["error"]:
+        missing_package = putils.extract_package_name_error(result["error"])
+        if missing_package:
+            install_result = putils.install_package(missing_package)
+            if install_result["success"]:
+                # Retry execution after successful installation
+                result = _execute_code_in_new_process(code, timeout=timeout, new_namespace=namespace, persist_namespace=persist_namespace)
+            else:
+                result["error"] += f"\nAdditionally, failed to install package '{missing_package}': {install_result['message']}"
+    
+    return result
 
 
 def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Optional[dict] = None, persist_namespace: bool = False) -> dict:

@@ -128,3 +128,23 @@ class PackageManager:
                 "message": f"Failed to install package '{package_name}': {e}"
             }
 
+class PackageUtils(PackageManager):
+    """Utility class for package management."""
+    
+    @classmethod
+    def extract_package_name_error(cls, error_message: str) -> str | None:
+        """
+        Extract the package name from an ImportError message.
+
+        :param error_message: The ImportError message.
+        :type error_message: str
+        :return: Extracted package name or None if not found.
+        :rtype: str | None
+        """
+        package_config = cls.load_package_config()
+        for pkg in package_config["whitelisted"] + package_config["safe"]:
+            if f"No module named '{pkg}'" in error_message:
+                return pkg
+        return None
+        
+
