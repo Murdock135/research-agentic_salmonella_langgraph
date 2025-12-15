@@ -22,29 +22,42 @@ class Agentic_system:
         self.llms = self._get_llms()
         self.prompts = self.settings.load_prompts()
 
-    def _get_llms(self):        
+    def _get_llms(self):
         router_config = self.llm_config['router']
-        explorer_config = self.llm_config['explorer']
         planner_config = self.llm_config['planner']
-        analyzer_config = self.llm_config['analyzer']
         executor_config = self.llm_config['executor']
         aggregator_config = self.llm_config['aggregator']
-        
+
         return {
             'router_llm': get_llm(model=router_config['model'], provider=router_config['provider']),
-            'explorer_llm': get_llm(model=explorer_config['model'], provider=explorer_config['provider']),
             'planner_llm': get_llm(model=planner_config['model'], provider=planner_config['provider']),
-            'analyzer_llm': get_llm(model=analyzer_config['model'], provider=analyzer_config['provider']),
             'executor_llm': get_llm(model=executor_config['model'], provider=executor_config['provider']),
             'aggregator_llm': get_llm(model=aggregator_config['model'], provider=aggregator_config['provider'])
         }
+
+
+        # router_config = self.llm_config['router']
+        # explorer_config = self.llm_config['explorer']
+        # planner_config = self.llm_config['planner']
+        # analyzer_config = self.llm_config['analyzer']
+        # executor_config = self.llm_config['executor']
+        # aggregator_config = self.llm_config['aggregator']
+        
+        # return {
+        #     'router_llm': get_llm(model=router_config['model'], provider=router_config['provider']),
+        #     'explorer_llm': get_llm(model=explorer_config['model'], provider=explorer_config['provider']),
+        #     'planner_llm': get_llm(model=planner_config['model'], provider=planner_config['provider']),
+        #     'analyzer_llm': get_llm(model=analyzer_config['model'], provider=analyzer_config['provider']),
+        #     'executor_llm': get_llm(model=executor_config['model'], provider=executor_config['provider']),
+        #     'aggregator_llm': get_llm(model=aggregator_config['model'], provider=aggregator_config['provider'])
+        # }
     
     def _get_node_definitions(self):
         self.router_node_partial = partial(router_node, llm=self.llms['router_llm'], prompt=self.prompts['router_prompt'])
         self.planner_node_partial = partial(planner_node, llm=self.llms['planner_llm'], sys_prompt=self.prompts['planner_prompt'], config=self.settings)
         self.executor_node_partial = partial(executor_node, llm=self.llms['executor_llm'], prompt=self.prompts['executor_prompt'], output_dir=self.settings.EXECUTOR_OUTPUT_DIR)
         self.aggregator_node_partial = partial(aggregator_node, llm=self.llms['aggregator_llm'], prompt=self.prompts['aggregator_prompt'])
-        self.saver_node_partial = partial(saver_node, save_dir=self.settings.RUN_OUTPUT_DIR)
+        self.saver_node_partial = partial(saver_node, save_dir=self.settings.OUTPUT_DIR)
     
     def _build_graph(self):
         graph_init = StateGraph(state_schema=State)

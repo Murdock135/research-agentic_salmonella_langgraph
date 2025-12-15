@@ -25,7 +25,7 @@ class Settings:
 
         self.LLM_CONFIG = self.CONFIG['llm_config']
         self.OUTPUT_DIR = Path(os.path.expanduser(self.CONFIG['paths']['OUTPUT_DIR']))
-        self.DATA_MANIFEST_PATH = 
+        self.DATA_MANIFEST_PATH = Path(os.path.expanduser(self.CONFIG['paths']['DATA_MANIFEST_PATH']))
 
         # Set output directories for different agents
         self.ROUTER_OUTPUT_DIR = self.OUTPUT_DIR / "router"
