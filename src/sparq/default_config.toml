@@ -1,0 +1,31 @@
+test_query = "What are the main factors contributing to salmonella rates in Missouri in a statistical sense?"
+prompts_dir = "prompts/"
+
+[output_paths]
+RUN_OUTPUT_DIR = "~/tmp/sparq_runs"
+
+[llm_config]
+[llm_config.router]
+model = "gemini-2.0-flash"
+provider = "google_genai"
+
+[llm_config.explorer]
+model = "gemini-2.0-flash"
+provider = "google_genai"
+
+[llm_config.analyzer]
+model = "gemini-2.0-flash"
+provider = "google_genai"
+
+[llm_config.planner]
+model = "gemini-2.0-flash"
+provider = "google_genai"
+
+[llm_config.executor]
+model = "gemini-2.0-flash"
+provider = "google_genai"
+
+[llm_config.aggregator]
+model = "gemini-2.0-flash"
+provider = "google_genai"
+

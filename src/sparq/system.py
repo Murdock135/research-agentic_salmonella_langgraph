@@ -1,6 +1,7 @@
-from config.config import Config
 from functools import partial
+from typing import Optional
 
+from sparq.settings import Settings
 from sparq.nodes.planner import planner_node
 from sparq.nodes.executor import executor_node
 from sparq.nodes.router import router_func, router_node
@@ -15,11 +16,11 @@ import pydantic_core
 from rich import print
 
 class Agentic_system:
-    def __init__(self, config: Config):
-        self.config = config
-        self.llm_config = config.load_llm_config()
+    def __init__(self, settings: Optional[Settings] = None):
+        self.settings = settings or Settings() # Use default settings if none provided
+        self.llm_config = self.settings.load_llm_config()
         self.llms = self._get_llms()
-        self.prompts = config.load_prompts()
+        self.prompts = self.settings.load_prompts()
 
     def _get_llms(self):        
         router_config = self.llm_config['router']
@@ -40,10 +41,10 @@ class Agentic_system:
     
     def _get_node_definitions(self):
         self.router_node_partial = partial(router_node, llm=self.llms['router_llm'], prompt=self.prompts['router_prompt'])
-        self.planner_node_partial = partial(planner_node, llm=self.llms['planner_llm'], sys_prompt=self.prompts['planner_prompt'], config=self.config)
-        self.executor_node_partial = partial(executor_node, llm=self.llms['executor_llm'], prompt=self.prompts['executor_prompt'], output_dir=self.config.EXECUTOR_OUTPUT_DIR)
+        self.planner_node_partial = partial(planner_node, llm=self.llms['planner_llm'], sys_prompt=self.prompts['planner_prompt'], config=self.settings)
+        self.executor_node_partial = partial(executor_node, llm=self.llms['executor_llm'], prompt=self.prompts['executor_prompt'], output_dir=self.settings.EXECUTOR_OUTPUT_DIR)
         self.aggregator_node_partial = partial(aggregator_node, llm=self.llms['aggregator_llm'], prompt=self.prompts['aggregator_prompt'])
-        self.saver_node_partial = partial(saver_node, save_dir=self.config.RUN_OUTPUT_DIR)
+        self.saver_node_partial = partial(saver_node, save_dir=self.settings.RUN_OUTPUT_DIR)
     
     def _build_graph(self):
         graph_init = StateGraph(state_schema=State)
