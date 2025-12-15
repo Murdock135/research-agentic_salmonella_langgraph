@@ -1,6 +1,8 @@
-from schemas.state import State
-from schemas.output_schemas import Plan, ExecutorOutput
-from tools import tools
+from sparq.schemas.state import State
+from sparq.schemas.output_schemas import Plan, ExecutorOutput
+from sparq.tools import tools
+from sparq.settings import Settings
+from sparq.utils import helpers
 
 from langchain_core.prompts import BasePromptTemplate, PromptTemplate
 from langchain_core.messages import SystemMessage
@@ -81,19 +83,16 @@ def executor_node(state: State, **kwargs):
 
 def test_executor(plan: Plan):
     print(f"Testing executor node with sample plan: \n {plan.pretty_print()}")
-    from config.config import Config
-    from utils import helpers
     
-    config = Config()
+    settings = Settings()
     llm = helpers.get_llm(model='o3-mini')
-    prompt = helpers.load_text(config.EXECUTOR_PROMPT_PATH)
-    output_dir = config.EXECUTOR_OUTPUT_DIR
+    prompt = helpers.load_text(settings.EXECUTOR_PROMPT_PATH)
+    output_dir = settings.EXECUTOR_OUTPUT_DIR
     
-    manifest_path = config.BASE_DIR / "data/data_manifest.json"
+    manifest_path = settings.DATA_MANIFEST_PATH
     manifest = helpers.load_data_manifest(manifest_path)
     df_summaries = helpers.get_df_summaries_from_manifest(manifest)
 
-    breakpoint()
     state = {'plan': plan, 'data_manifest': manifest,'df_summaries': df_summaries}
     response = executor_node(state=state, prompt=prompt, output_dir=output_dir, llm=llm)
     
@@ -102,7 +101,7 @@ def test_executor(plan: Plan):
         print(result)
 
 if __name__ == "__main__":
-    from schemas.output_schemas import Step
+    from sparq.schemas.output_schemas import Step
 
     sample_plan = Plan(
         steps=[

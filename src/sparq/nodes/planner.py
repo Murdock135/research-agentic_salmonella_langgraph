@@ -1,27 +1,34 @@
-from schemas.state import State
-from schemas.output_schemas import Plan
-from config.config import Config
-from utils import helpers
+from sparq.schemas.state import State
+from sparq.schemas.output_schemas import Plan
+from sparq.settings import Settings
+from sparq.utils import helpers
 
 from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import SystemMessage
 from langchain_core.prompts import BasePromptTemplate, PromptTemplate
 
-
-import os
-
 def planner_node(state: State, **kwargs):
     """
     Create a plan to answer the user query
+
+    Args:
+        state (State): The current state containing the user query.
+        **kwargs: Additional keyword arguments including:
+            - sys_prompt (str): The system prompt template for the planner.
+            - llm: The language model to use for planning.
+            - settings (Settings): The settings object containing configuration.
+
+    Returns:
+        dict: A dictionary containing the generated plan, data manifest, and dataframe summaries.
     """
     print("Making a plan to answer your query")
     
     sys_prompt = kwargs['sys_prompt']
     llm = kwargs['llm']
-    config: Config = kwargs['config']
+    settings: Settings = kwargs['settings']
     
     # load manifest
-    manifest_path = config.DATA_MANIFEST_PATH    
+    manifest_path = settings.DATA_MANIFEST_PATH    
     manifest: dict = helpers.load_data_manifest(manifest_path)
     manifest_str = str(manifest)
     

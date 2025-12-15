@@ -1,5 +1,5 @@
 [project]
-name = "research-agentic-salmonella-langgraph"
+name = "sparq"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -30,4 +30,11 @@ dependencies = [
     "tiktoken==0.9.0",
     "tqdm==4.67.1",
     "langchain-aws",
+    "appdirs>=1.4.4",
 ]
+[project.scripts]
+sparq = "sparq.__main__:main"
+
+[build-system]
+requires = ["uv_build>=0.9.17,<0.10.0"]
+build-backend = "uv_build"

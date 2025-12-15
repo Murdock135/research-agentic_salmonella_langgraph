@@ -1,12 +1,14 @@
-from config.config import Config
 from functools import partial
+from typing import Optional
 
-from nodes.planner import planner_node
-from nodes.executor import executor_node
-from nodes.router import router_func, router_node
-from nodes.aggregator import aggregator_node
-from nodes.saver import saver_node
-from schemas.state import State
+from sparq.settings import Settings
+from sparq.nodes.planner import planner_node
+from sparq.nodes.executor import executor_node
+from sparq.nodes.router import router_func, router_node
+from sparq.nodes.aggregator import aggregator_node
+from sparq.nodes.saver import saver_node
+from sparq.schemas.state import State
+from sparq.utils.helpers import get_llm
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import RetryPolicy
@@ -14,37 +16,31 @@ import pydantic_core
 from rich import print
 
 class Agentic_system:
-    def __init__(self, config: Config):
-        self.config = config
-        self.llm_config = config.load_llm_config()
+    def __init__(self, settings: Optional[Settings] = None):
+        self.settings = settings or Settings() # Use default settings if none provided
+        self.llm_config = self.settings.LLM_CONFIG
         self.llms = self._get_llms()
-        self.prompts = config.load_prompts()
+        self.prompts = self.settings.load_prompts()
 
     def _get_llms(self):
-        from utils.helpers import get_llm
-        
         router_config = self.llm_config['router']
-        explorer_config = self.llm_config['explorer']
         planner_config = self.llm_config['planner']
-        analyzer_config = self.llm_config['analyzer']
         executor_config = self.llm_config['executor']
         aggregator_config = self.llm_config['aggregator']
-        
+
         return {
             'router_llm': get_llm(model=router_config['model'], provider=router_config['provider']),
-            'explorer_llm': get_llm(model=explorer_config['model'], provider=explorer_config['provider']),
             'planner_llm': get_llm(model=planner_config['model'], provider=planner_config['provider']),
-            'analyzer_llm': get_llm(model=analyzer_config['model'], provider=analyzer_config['provider']),
             'executor_llm': get_llm(model=executor_config['model'], provider=executor_config['provider']),
             'aggregator_llm': get_llm(model=aggregator_config['model'], provider=aggregator_config['provider'])
         }
     
     def _get_node_definitions(self):
         self.router_node_partial = partial(router_node, llm=self.llms['router_llm'], prompt=self.prompts['router_prompt'])
-        self.planner_node_partial = partial(planner_node, llm=self.llms['planner_llm'], sys_prompt=self.prompts['planner_prompt'], config=self.config)
-        self.executor_node_partial = partial(executor_node, llm=self.llms['executor_llm'], prompt=self.prompts['executor_prompt'], output_dir=self.config.EXECUTOR_OUTPUT_DIR)
+        self.planner_node_partial = partial(planner_node, llm=self.llms['planner_llm'], sys_prompt=self.prompts['planner_prompt'], settings=self.settings)
+        self.executor_node_partial = partial(executor_node, llm=self.llms['executor_llm'], prompt=self.prompts['executor_prompt'], output_dir=self.settings.EXECUTOR_OUTPUT_DIR)
         self.aggregator_node_partial = partial(aggregator_node, llm=self.llms['aggregator_llm'], prompt=self.prompts['aggregator_prompt'])
-        self.saver_node_partial = partial(saver_node, save_dir=self.config.RUN_OUTPUT_DIR)
+        self.saver_node_partial = partial(saver_node, save_dir=self.settings.OUTPUT_DIR)
     
     def _build_graph(self):
         graph_init = StateGraph(state_schema=State)

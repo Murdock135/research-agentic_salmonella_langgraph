@@ -1,7 +1,7 @@
-from schemas.state import State
+from sparq.schemas.state import State
 
 from langchain_core.prompts import BasePromptTemplate, PromptTemplate
-from langchain_core.messages import SystemMessage, BaseMessage
+from langchain_core.messages import BaseMessage
 from langchain_core.language_models import BaseChatModel
 
 def aggregator_node(state: State, **kwargs):

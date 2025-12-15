@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from schemas.output_schemas import Plan
-from schemas.state import State
+from sparq.schemas.output_schemas import Plan
+from sparq.schemas.state import State
 
 import json
 from pathlib import Path

@@ -2,12 +2,13 @@ import os
 import datetime
 from pathlib import Path
 
-from utils.helpers import load_text, check_data_manifest
 from .load_env import load_env_vars
+from sparq.utils.helpers import load_text
+from sparq.settings import Settings
 
-
-class Config:
+class Config(Settings):
     def __init__(self):
+        super().__init__()
         # Load environment variables
         load_env_vars()
         
@@ -16,18 +17,6 @@ class Config:
         
         # Path to llm config toml
         self.LLM_CONFIG_PATH = self.BASE_DIR / 'config/config.toml'
-        
-        # Path to system messages
-        self.PROMPT_DIR = self.BASE_DIR / 'sys_messages'
-        self.ROUTER_PROMPT_PATH = self.PROMPT_DIR / 'router_message.txt'
-        self.PLANNER_PROMPT_PATH = self.PROMPT_DIR / 'planner_message.txt'
-        self.EXPLORER_PROMPT_PATH = self.PROMPT_DIR / 'explorer_message.txt'
-        self.ANALYZER_PROMPT_PATH = self.PROMPT_DIR / 'analyzer_message.txt'
-        self.EXECUTOR_PROMPT_PATH = self.PROMPT_DIR / 'executor_message.txt'
-        self.AGGREGATOR_PROMPT_PATH = self.PROMPT_DIR / 'aggregator_message.txt'
-        
-        # Path to user messages
-        self.EXPLORER_MESSAGE_PATH = self.PROMPT_DIR / 'explorer_user_message.txt'
         
         # Path to data manifest
         self.DATA_MANIFEST_PATH = self.BASE_DIR / 'data/data_manifest.json'
@@ -56,15 +45,7 @@ class Config:
         
         for dir in llm_output_dirs:
             os.makedirs(dir, exist_ok=True)
-    
-    def get_selected_data_paths(self):
-        return {
-            'mmg': self.SELECTED_MMG_DIR,
-            'nors': self.SELECTED_NORS_DIR,
-            'svi': self.SELECTED_SVI_DIR,
-            'socioecono_salmonella': self.SELECTED_SOCIOECONO_SALMONELLA
-        }
-    
+        
     def load_prompts(self):
         return {
             'router_prompt': load_text(self.ROUTER_PROMPT_PATH),
@@ -102,20 +83,11 @@ class Config:
         
         return RUN_OUTPUT_DIR
     
-    
-    def get_data_repoIDs(self, path_to_manifest_file):
-        """
-        Get the repository IDs of datasets from the manifest file.
-        """
-        manifest = self.load_data_manifest(path_to_manifest_file)
-        repo_ids = {dataset: info['repo_id'] for dataset, info in manifest.items() if 'repo_id' in info}
-        
-        return repo_ids
-    
 # Create main guard to test the Config class
 if __name__ == "__main__":
     config = Config()
     print("Base Directory: ", config.BASE_DIR)
+    breakpoint()
     # print("Data Directory: ", config.DATA_DIR)
     # print("Raw Data Directory: ", config.RAW_DATA_DIR)
     # print("Processed Data Directory: ", config.PROCESSED_DATA_DIR)
