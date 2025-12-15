@@ -2,19 +2,11 @@ test_query = "What are the main factors contributing to salmonella rates in Miss
 prompts_dir = "prompts/"
 
 [paths]
-RUN_OUTPUT_DIR = "~/tmp/sparq/output"
-DATA_MANIFEST_PATH = "~/tmp/sparq/data/manifest.yaml"
+OUTPUT_DIR = "~/tmp/sparq/output"
+DATA_MANIFEST_PATH = "~/.config/sparq/data/manifest.json"
 
 [llm_config]
 [llm_config.router]
-model = "gemini-2.0-flash"
-provider = "google_genai"
-
-[llm_config.explorer]
-model = "gemini-2.0-flash"
-provider = "google_genai"
-
-[llm_config.analyzer]
 model = "gemini-2.0-flash"
 provider = "google_genai"
 

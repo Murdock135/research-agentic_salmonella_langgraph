@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Dict
+import os
 
 class Settings:
     """Default settings for SPARQ with sensible defaults.
@@ -13,16 +14,27 @@ class Settings:
     """
     
     def __init__(self, prompts_dir: Path = None, config_path: Path = None):
-        # Get package directory
+        # Set package and project root directories
         self.PACKAGE_DIR = Path(__file__).parent
+        self.PROJECT_ROOT = Path(__file__).parent.parent.parent
+        self._verify_project_root()
 
         # Load configuration
         self.CONFIG_PATH = config_path or (self.PACKAGE_DIR / "default_config.toml")
         self.CONFIG = self.load_config(self.CONFIG_PATH)
 
         self.LLM_CONFIG = self.CONFIG['llm_config']
-        self.RUN_OUTPUT_DIR = self.CONFIG['paths']['RUN_OUTPUT_DIR']
-        self.DATA_MANIFEST_PATH = self.CONFIG['paths']['DATA_MANIFEST_PATH']
+        self.OUTPUT_DIR = Path(os.path.expanduser(self.CONFIG['paths']['OUTPUT_DIR']))
+        self.DATA_MANIFEST_PATH = 
+
+        # Set output directories for different agents
+        self.ROUTER_OUTPUT_DIR = self.OUTPUT_DIR / "router"
+        self.PLANNER_OUTPUT_DIR = self.OUTPUT_DIR / "planner"
+        self.EXECUTOR_OUTPUT_DIR = self.OUTPUT_DIR / "executor"
+        self.AGGREGATOR_OUTPUT_DIR = self.OUTPUT_DIR / "aggregator"
+
+        # Create output directories
+        self._create_output_dirs()
         
         # Allow override of prompts directory
         self.PROMPTS_DIR = prompts_dir or (self.CONFIG["prompts_dir"])
@@ -60,6 +72,32 @@ class Settings:
             config = tomllib.load(f)
         
         return config
+    
+    def _create_output_dirs(self):
+        """Create output directories if they don't exist."""
+        dirs = [
+            self.OUTPUT_DIR,
+            self.ROUTER_OUTPUT_DIR,
+            self.PLANNER_OUTPUT_DIR,
+            self.EXECUTOR_OUTPUT_DIR,
+            self.AGGREGATOR_OUTPUT_DIR
+        ]
+        for dir in dirs:
+            os.makedirs(dir, exist_ok=True)
+
+    def _verify_project_root(self):
+        """Ask user to confirm the project root directory."""
+        user_input = input(f"Is '{self.PROJECT_ROOT}' the correct project root? (y/n): ")
+        if user_input.lower() != 'y':
+            new_path = input("Please enter the correct project root path: ")
+
+            try:
+                self.PROJECT_ROOT = Path(os.path.expanduser(new_path)).resolve()
+            except Exception as e:
+                raise ValueError(f"Invalid path provided: {new_path}") from e
+        
+
+
 
 
 if __name__ == "__main__":
