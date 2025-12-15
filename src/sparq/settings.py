@@ -14,16 +14,16 @@ class Settings:
     - prompts_dir: Directory containing prompt text files.
     """
     def __init__(self, prompts_dir: Path = None, config_path: Path = None):
-        # Load environment variables
-        self._load_env_variables()
-        self._verify_env_variables()
-
         # Set package and project root directories
         self.PACKAGE_DIR = Path(__file__).parent
         self.PROJECT_ROOT = Path(__file__).parent.parent.parent
 
         if os.isatty(0):
             self._verify_project_root()
+
+        # Load environment variables from .env file if it exists
+        self._load_env_variables()
+        self._verify_env_variables()
 
         # Load configuration
         self.CONFIG_PATH = config_path or (self.PACKAGE_DIR / "default_config.toml")
@@ -121,9 +121,6 @@ class Settings:
             print("Exiting program.")
             sys.exit(0)
     
-
-
-
 
 if __name__ == "__main__":
     # Test loading prompts
