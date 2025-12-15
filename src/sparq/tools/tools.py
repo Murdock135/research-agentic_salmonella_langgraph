@@ -180,17 +180,18 @@ def get_weather(location):
     """
     pass
 
-if __name__ == "__main__":
-    from config.load_env import load_env_vars
-    load_env_vars()
+# TODO: Add test code for tools here
+# if __name__ == "__main__":
+#     from config.load_env import load_env_vars
+#     load_env_vars()
     
-    from config.config import Config
-    config = Config()
+#     from config.config import Config
+#     config = Config()
     
-    repo_id = "zayanhugsAI/socioecono_salmonella"
-    location = get_cached_dataset_path.invoke(repo_id)
-    breakpoint()
-    data_files = find_csv_excel_files.invoke({'root_dir': location})
+#     repo_id = "zayanhugsAI/socioecono_salmonella"
+#     location = get_cached_dataset_path.invoke(repo_id)
+#     breakpoint()
+#     data_files = find_csv_excel_files.invoke({'root_dir': location})
     
-    print(data_files)
-    exit(0)
+#     print(data_files)
+#     exit(0)

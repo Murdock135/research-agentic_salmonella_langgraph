@@ -4,9 +4,11 @@ from pathlib import Path
 
 from load_env import load_env_vars
 from sparq.utils.helpers import load_text
+from sparq.settings import Settings
 
-class Config:
+class Config(Settings):
     def __init__(self):
+        super().__init__()
         # Load environment variables
         load_env_vars()
         
@@ -15,18 +17,6 @@ class Config:
         
         # Path to llm config toml
         self.LLM_CONFIG_PATH = self.BASE_DIR / 'config/config.toml'
-        
-        # Path to system messages
-        self.PROMPT_DIR = self.BASE_DIR / 'sys_messages'
-        self.ROUTER_PROMPT_PATH = self.PROMPT_DIR / 'router_message.txt'
-        self.PLANNER_PROMPT_PATH = self.PROMPT_DIR / 'planner_message.txt'
-        self.EXPLORER_PROMPT_PATH = self.PROMPT_DIR / 'explorer_message.txt'
-        self.ANALYZER_PROMPT_PATH = self.PROMPT_DIR / 'analyzer_message.txt'
-        self.EXECUTOR_PROMPT_PATH = self.PROMPT_DIR / 'executor_message.txt'
-        self.AGGREGATOR_PROMPT_PATH = self.PROMPT_DIR / 'aggregator_message.txt'
-        
-        # Path to user messages
-        self.EXPLORER_MESSAGE_PATH = self.PROMPT_DIR / 'explorer_user_message.txt'
         
         # Path to data manifest
         self.DATA_MANIFEST_PATH = self.BASE_DIR / 'data/data_manifest.json'
