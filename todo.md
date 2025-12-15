@@ -9,3 +9,4 @@
 4. Create a cli utility to create a default config file at a specified path.
 5. Create a cli utility to load environment variables from a specified .env file.
 6. Implement conventional CLI behaviours such as keeping config in `~/.config/sparq/config.json` and allowing override via `--config` flag.
+7. Allow developers to override settings via subclassing Settings object.
