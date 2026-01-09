@@ -2,6 +2,7 @@ from pathlib import Path
 import tomllib
 import subprocess
 import sys
+from typing import Optional
 
 class PackageManager:
     """Manages package installation and whitelisting for safe code execution."""
@@ -15,18 +16,24 @@ class PackageManager:
     }
 
     @classmethod
-    def load_package_config(cls, config_path: str = None) -> dict:
+    def load_package_config(cls, config_path: Optional[str] = None) -> dict:
         """
         Load package configuration from a TOML file.
 
-        :param config_path: Optional path to the config file.
-        :type config_path: str
-        :return: Package configuration dictionary.
-        :rtype: dict
+        Args:
+            config_path (Optional[str]): Path to the configuration file (In TOML format). If None, uses default paths
+        Returns:
+            dict: Package configuration with 'blocked', 'safe', and 'whitelisted' lists.
         """
+
+        # Return cached config if already loaded
         if cls._config is not None:
             return cls._config
 
+        # Define the hierarchy of config file locations
+        # 1. User-specified path
+        # 2. User config directory (~/.config/sparq/package_config.toml)
+        # 3. Default config in the package directory
         heirarchy_paths = [
             Path(config_path) if config_path else None,
             Path.home() / ".config" / "sparq" / "package_config.toml",
@@ -74,12 +81,12 @@ class PackageManager:
     @classmethod
     def is_installed(cls, package_name: str) -> bool:
         """
-        Check if a package is already installed.
+        (Classmethod) Check if a package is already installed.
 
-        :param package_name: Name of the package to check.
-        :type package_name: str
-        :return: True if installed, False otherwise.
-        :rtype: bool
+        Args:
+            package_name (str): Name of the package to check.
+        Returns:
+            bool: True if the package is installed, False otherwise.
         """
         try:
             __import__(package_name)
