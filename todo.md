@@ -1,11 +1,12 @@
 # Refactor code
 
 # Refactoring stage 2
-2. Remove all code's dependence on `config` module inside `sparq/` and make them dependent on `settings` module inside `sparq/` instead.
+~~2. Remove all code's dependence on `config` module inside `sparq/` and make them dependent on `settings` module inside `sparq/` instead.~~
+
 2. Separate helper functions and move appropriate functions to other places; 
     - helper functions that help sparq
     - helper functions that help other modules like config, experiments, etc.
-3. Incorporate logic for incorporating environment variables.
+~~3. Incorporate logic for incorporating environment variables.~~
 4. Create a cli utility to create a default config file at a specified path.
 5. Create a cli utility to load environment variables from a specified .env file.
 6. Implement conventional CLI behaviours such as keeping config in `~/.config/sparq/config.json` and allowing override via `--config` flag.
