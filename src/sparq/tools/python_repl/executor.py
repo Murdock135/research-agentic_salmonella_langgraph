@@ -1,19 +1,19 @@
 import multiprocessing as mp
+import traceback
 
 from typing import Optional, List
 
 from sparq.tools.python_repl.ast_utils import extract_last_expression
-from sparq.tools.python_repl.namespace import get_persistent_namespace
+from sparq.tools.python_repl.namespace import get_persistent_namespace, clean_namespace
 from sparq.tools.python_repl.package_manager import PackageUtils as putils
+from sparq.tools.python_repl.schemas import OutputSchema, ExceptionInfo
 
 # TODO:
 """todo:
-- Convert the execute_code into a langchain tool.
 - Implment structured output.
-- Allow for third party library imports.
 """
 
-def execute_code(code: str, persist_namespace: bool = False, timeout: int = 10) -> dict:
+def execute_code(code: str, persist_namespace: bool = False, timeout: int = 10) -> OutputSchema:
     if persist_namespace:
         namespace = get_persistent_namespace() # Use module-level namespace for persistence
     else:
@@ -22,20 +22,24 @@ def execute_code(code: str, persist_namespace: bool = False, timeout: int = 10) 
     result = _execute_code_in_new_process(code, timeout=timeout, new_namespace=namespace, persist_namespace=persist_namespace)
 
     # On import error, install the package if whitelisted and retry execution
-    if result["error"] and "ModuleNotFoundError" in result["error"]:
-        missing_package = putils.extract_package_name_error(result["error"])
+    if result.error and "ModuleNotFoundError" in result.error.message:
+        missing_package = putils.extract_package_name_error(result.error.message)
         if missing_package:
             install_result = putils.install_package(missing_package)
             if install_result["success"]:
                 # Retry execution after successful installation
                 result = _execute_code_in_new_process(code, timeout=timeout, new_namespace=namespace, persist_namespace=persist_namespace)
             else:
-                result["error"] += f"\nAdditionally, failed to install package '{missing_package}': {install_result['message']}"
+                # Update error with installation failure info
+                result.error.extra_context["package_install_failed"] = {
+                    "package": missing_package,
+                    "message": install_result["message"]
+                }
     
     return result
 
 
-def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Optional[dict] = None, persist_namespace: bool = False) -> dict:
+def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Optional[dict] = None, persist_namespace: bool = False) -> OutputSchema:
     """
     Executes the given Python code and returns the output or error message.
 
@@ -45,12 +49,17 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
 
     statements, expr, syntax_error = extract_last_expression(code)
     if syntax_error:
-        return {
-            "output": "",
-            "error": f"SyntaxError: {syntax_error}",
-            "namespace": new_namespace,
-            "success": False,
-        }
+        return OutputSchema(
+            output="",
+            error=ExceptionInfo(
+                type="SyntaxError",
+                message=str(syntax_error),
+                traceback="",
+                extra_context={}
+            ),
+            namespace=new_namespace or {},
+            success=False
+        )
     
     queue = mp.Queue()
     process = mp.Process(
@@ -68,56 +77,77 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
 
     if process.is_alive():
         process.terminate()
-        result = {
-            "output": "",
-            "error": "Error: Code execution timed out.",
-            "namespace": new_namespace,
-            "success": False,
-        }
+        result = OutputSchema(
+            output="",
+            error=ExceptionInfo(
+                type="TimeoutError",
+                message="Code execution timed out.",
+                traceback="",
+                extra_context={"timeout_seconds": timeout}
+            ),
+            namespace=new_namespace or {},
+            success=False
+        )
     else:
         result = queue.get()
 
     # Update the namespace if execution was successful and persistence is desired
-    if result["success"] and persist_namespace:
-            new_namespace.update(result["namespace"])
+    if result.success and persist_namespace:
+            new_namespace.update(result.namespace)
     
     return result
 
 def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespace: dict):
     """
-    Docstring for _target
+    Target function for multiprocessing execution.
     
-    :param statements: Description
+    :param statements: List of Python statements to execute
     :type statements: Optional[List[str]]
-    :param expr: Description
+    :param expr: Final expression to evaluate
     :type expr: str
-    :param queue: Description
+    :param queue: Queue for returning results
     :type queue: mp.Queue
-    :param namespace: Description
+    :param namespace: Execution namespace
     :type namespace: dict
 
     - Catches Any Exception (SyntaxError should be caught earlier)
     """
-    result = {
-        "output": "",
-        "error": "",
-        "namespace": namespace,
-        "success": False,
-    }
-
     try:
         # If there are statements, execute them with namespace 
         if statements:
             exec("\n".join(statements), namespace)
 
+        output = ""
         if expr != "":
-            result["output"] = eval(expr, namespace)
+            output = str(eval(expr, namespace))
 
-        result["success"] = True
+        # Clean the namespace by removing any built-in or special variables
+        clean_namespace(namespace)
+
+        result = OutputSchema(
+            output=output,
+            error=None,
+            namespace=namespace,
+            success=True
+        )
     
     # Catches Any Exception (SyntaxError should be caught earlier)
     except Exception as e:
-        result["error"] += f"{type(e).__name__}: {e}"
+
+        # Clean the namespace by removing any built-in or special variables
+        clean_namespace(namespace)
+        
+        result = OutputSchema(
+            output="",
+            error=ExceptionInfo(
+                type=type(e).__name__,
+                message=str(e),
+                traceback=traceback.format_exc(),
+                extra_context={}
+            ),
+            namespace=namespace,
+            success=False
+        )
 
     finally:
         queue.put(result)
@@ -128,10 +158,10 @@ if __name__ == "__main__":
     code_snippet = """
 x = 10
 y = 20
-x + y
+x + y3
                     """
     output = execute_code(code_snippet, persist_namespace=True)
-    print(output.get("output"))  # Expected: 30
+    print(output)
 
-    output = execute_code("x * 2", persist_namespace=True)
-    print(output.get("output"))  # Expected: 20
+    # output = execute_code("x * 2", persist_namespace=True)
+    # print(output)
