@@ -100,7 +100,8 @@ class Settings:
         """Load environment variables from a .env file if it exists."""
         from dotenv import load_dotenv
 
-        env_path = self.USER_CONFIG_DIR / ".env" if env_path is None else env_path
+        # Determine the path to the .env file. Priority: user config dir > package dir > provided path
+        env_path = self.USER_CONFIG_DIR / ".env" or self.PACKAGE_DIR / ".env" or Path(env_path)
         if env_path.exists():
             load_dotenv(dotenv_path=env_path)
         else:
@@ -108,7 +109,7 @@ class Settings:
     
     def _create_template_env_file(self, env_path: Path):
         """Create a template .env file with placeholder values."""
-        
+
         template = """# SPARQ .env file template
 # Replace the placeholder values with your actual API keys and configurations
 # GOOGLE_API_KEY=your_google_api_key_here
