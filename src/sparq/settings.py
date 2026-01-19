@@ -45,7 +45,9 @@ class Settings:
         # Create output directories
         self._create_output_dirs()
         
-        # Allow override of prompts directory
+        # Allow override of prompts directory (defaults to PACKAGE_DIR / CONFIG['paths']['PROMPTS_DIR'])
+        # Note: Prompts directory isn't expected in ~/.config/sparq/ because these prompts are not meant to be changed by the user.
+        # They are only controlled by the developer, who will clone the repository and modify the prompts as needed.
         self.PROMPTS_DIR = prompts_dir or self.PACKAGE_DIR / self.CONFIG['paths']['PROMPTS_DIR']
         self.PROMPTS_DIR = Path(self.PROMPTS_DIR)
     
@@ -106,6 +108,7 @@ class Settings:
     
     def _create_template_env_file(self, env_path: Path):
         """Create a template .env file with placeholder values."""
+        
         template = """# SPARQ .env file template
 # Replace the placeholder values with your actual API keys and configurations
 # GOOGLE_API_KEY=your_google_api_key_here

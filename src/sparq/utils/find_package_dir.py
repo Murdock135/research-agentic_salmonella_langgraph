@@ -1,0 +1,1 @@
+# TODO: Implement a function to find the package directory of SPARQ. This can be useful for locating resources relative to the package, such as default configuration files or prompts.
