@@ -8,12 +8,3 @@ def get_persistent_namespace() -> dict:
     :rtype: dict[Any, Any]
     """
     return _PERSISTENT_NAMESPACE
-
-def reset_persistent_namespace():
-    """
-    Resets the persistent namespace to an empty state.
-    :return: None
-    :rtype: None
-    """
-    global _PERSISTENT_NAMESPACE
-    _PERSISTENT_NAMESPACE.clear()
