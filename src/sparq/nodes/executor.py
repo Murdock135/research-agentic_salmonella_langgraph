@@ -54,6 +54,7 @@ def executor_node(state: State, **kwargs):
         checkpointer=checkpointer
     )
     
+    # FIXME: Grab the code from tool call args and results from tool call results (OutputSchema)
     def process_step(results: dict, step_description, step_index, config):
         agent_input = {"messages": [{"role": "user", "content": step_description}]}
         response = agent.invoke(agent_input, config)
