@@ -5,8 +5,8 @@ from sparq.tools.python_repl.executor import execute_code
 from sparq.tools.python_repl.schemas import OutputSchema
 
 
-@tool(args_schema=PythonREPLInput)
-def python_repl_tool(code: str, persist_namespace: bool = False, timeout: int = 10) -> OutputSchema:
+@tool(args_schema=PythonREPLInput, response_format="content_and_artifact")
+def python_repl_tool(code: str, persist_namespace: bool = False, timeout: int = 10) -> tuple[str, OutputSchema]:
     """
     Executes the given Python code in a REPL environment.
     Supports variable persistence across executions and automatic installation of 
@@ -18,9 +18,18 @@ def python_repl_tool(code: str, persist_namespace: bool = False, timeout: int = 
         timeout: The maximum time in seconds to allow for code execution.
 
     Returns:
-        OutputSchema: The result of the code execution, including output, error, namespace, and success status.
+        tuple: (formatted_message, OutputSchema) - The formatted message is shown to the LLM,
+               while OutputSchema provides structured data for downstream processing.
     """
-    return execute_code(code, persist_namespace=persist_namespace, timeout=timeout)
+    result = execute_code(code, persist_namespace=persist_namespace, timeout=timeout)
+    
+    # Create clean message for LLM
+    if result.success:
+        message = f"✓ Code executed successfully.\nOutput:\n{result.output}"
+    else:
+        message = f"✗ Execution failed.\nError ({result.error.type}): {result.error.message}\n\nTraceback:\n{result.error.traceback}\nExtra Context:\n{result.error.extra_context}"
+    
+    return message, result
 
 def test_python_repl_tool():
     """
@@ -28,7 +37,9 @@ def test_python_repl_tool():
     """
     # Test 1: Basic arithmetic with persistence
     input_data = {"code": "x = 5\ny = 10\nx + y", "persist_namespace": True, "timeout": 5}
-    output = python_repl_tool.invoke(input_data)
+    
+    # Call the underlying function directly to get both content and artifact
+    message, output = python_repl_tool.func(**input_data)
     
     assert output.success is True, f"Expected success=True, got {output.success}"
     assert output.output == "15", f"Expected output='15', got '{output.output}'"
@@ -41,7 +52,7 @@ def test_python_repl_tool():
     
     # Test 2: Error handling
     input_data = {"code": "undefined_var", "persist_namespace": False, "timeout": 5}
-    output = python_repl_tool.invoke(input_data)
+    message, output = python_repl_tool.func(**input_data)
     
     assert output.success is False, "Expected failure for undefined variable"
     assert output.error is not None, "Expected error information"
@@ -51,14 +62,14 @@ def test_python_repl_tool():
     
     # Test 3a: Non-persistent namespace - first execution
     input_data = {"code": "temp = 100\ntemp", "persist_namespace": False, "timeout": 5}
-    output = python_repl_tool.invoke(input_data)
+    message, output = python_repl_tool.func(**input_data)
     
     assert output.success is True, "Expected success for isolated execution"
     assert output.output == "100", f"Expected output='100', got '{output.output}'"
     
     # Test 3b: Non-persistent namespace - verify variable doesn't persist
     input_data = {"code": "temp", "persist_namespace": False, "timeout": 5}
-    output = python_repl_tool.invoke(input_data)
+    message, output = python_repl_tool.func(**input_data)
     
     assert output.success is False, "Expected failure - 'temp' should not exist in new isolated execution"
     assert output.error is not None, "Expected error information"

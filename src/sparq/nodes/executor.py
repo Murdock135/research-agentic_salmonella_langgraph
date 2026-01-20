@@ -1,6 +1,7 @@
 from sparq.schemas.state import State
 from sparq.schemas.output_schemas import Plan, ExecutorOutput
 from sparq.tools import tools
+from sparq.tools.python_repl import python_repl_tool
 from sparq.settings import Settings
 from sparq.utils import helpers
 
@@ -25,7 +26,7 @@ def executor_node(state: State, **kwargs):
     _tools = [
         tools.load_dataset,
         tools.get_sheet_names,
-        tools.getpythonrepltool(),
+        python_repl_tool,
         tools.find_csv_excel_files,
         tools.get_cached_dataset_path,
     ] + (tools.filesystemtools(working_dir=str(output_dir),

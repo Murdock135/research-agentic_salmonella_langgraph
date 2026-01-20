@@ -5,8 +5,7 @@ class PythonREPLInput(BaseModel):
     code: str = Field(..., description="The Python code to execute.")
     persist_namespace: bool = Field(False, description="Whether to persist the namespace across executions.")
     timeout: int = Field(10, description="The maximum time in seconds to allow for code execution.")
-
-# ========== UNDER DEVELOPMENT ==============================================================================
+    
 class ExceptionInfo(BaseModel):
     type: str = Field(..., description="The type of the exception.")
     message: str = Field(..., description="The exception message.")
