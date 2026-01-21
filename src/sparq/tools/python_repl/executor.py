@@ -8,11 +8,6 @@ from sparq.tools.python_repl.namespace import get_persistent_namespace, clean_na
 from sparq.tools.python_repl.package_manager import PackageUtils as putils
 from sparq.tools.python_repl.schemas import OutputSchema, ExceptionInfo
 
-# TODO:
-"""todo:
-- Implment structured output.
-"""
-
 def execute_code(code: str, persist_namespace: bool = False, timeout: int = 10) -> OutputSchema:
     if persist_namespace:
         namespace = get_persistent_namespace() # Use module-level namespace for persistence
@@ -47,6 +42,7 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
         code (str): The Python code to execute.
     """
 
+    # Extract the last expression from the code to evaluate it separately. Catch any syntax errors.
     statements, expr, syntax_error = extract_last_expression(code)
     if syntax_error:
         return OutputSchema(
@@ -97,6 +93,7 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
     
     return result
 
+# FIXME: Capture stdout
 def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespace: dict):
     """
     Target function for multiprocessing execution.

@@ -5,7 +5,7 @@ from sparq.tools.python_repl.executor import execute_code
 from sparq.tools.python_repl.schemas import OutputSchema
 
 
-@tool(args_schema=PythonREPLInput, response_format="content_and_artifact")
+@tool(args_schema=PythonREPLInput, response_format='content')
 def python_repl_tool(code: str, persist_namespace: bool = False, timeout: int = 10) -> tuple[str, OutputSchema]:
     """
     Executes the given Python code in a REPL environment.
@@ -18,18 +18,17 @@ def python_repl_tool(code: str, persist_namespace: bool = False, timeout: int = 
         timeout: The maximum time in seconds to allow for code execution.
 
     Returns:
-        tuple: (formatted_message, OutputSchema) - The formatted message is shown to the LLM,
-               while OutputSchema provides structured data for downstream processing.
+        str: The formatted message is shown to the LLM.
     """
-    result = execute_code(code, persist_namespace=persist_namespace, timeout=timeout)
+    execution_result = execute_code(code, persist_namespace=persist_namespace, timeout=timeout)
     
     # Create clean message for LLM
-    if result.success:
-        message = f"✓ Code executed successfully.\nOutput:\n{result.output}"
+    if execution_result.success:
+        response = f"✓ Code executed successfully.\nOutput:\n{execution_result.output}"
     else:
-        message = f"✗ Execution failed.\nError ({result.error.type}): {result.error.message}\n\nTraceback:\n{result.error.traceback}\nExtra Context:\n{result.error.extra_context}"
+        response = f"✗ Execution failed.\nError ({execution_result.error.type}): {execution_result.error.message}\n\nTraceback:\n{execution_result.error.traceback}\nExtra Context:\n{execution_result.error.extra_context}"
     
-    return message, result
+    return response
 
 def test_python_repl_tool():
     """
