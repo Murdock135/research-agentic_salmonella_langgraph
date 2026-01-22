@@ -9,6 +9,17 @@ from sparq.tools.python_repl.package_manager import PackageUtils as putils
 from sparq.tools.python_repl.schemas import OutputSchema, ExceptionInfo
 
 def execute_code(code: str, persist_namespace: bool = False, timeout: int = 10) -> OutputSchema:
+    """
+    Execute Python code with optional namespace persistence and timeout.
+    
+    Args:
+        code: Python code to execute
+        persist_namespace: Whether to persist variables across executions
+        timeout: Maximum execution time in seconds
+        
+    Returns:
+        OutputSchema containing execution results, including output, errors, and namespace
+    """
     if persist_namespace:
         namespace = get_persistent_namespace() # Use module-level namespace for persistence
     else:
@@ -36,13 +47,21 @@ def execute_code(code: str, persist_namespace: bool = False, timeout: int = 10) 
 
 def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Optional[dict] = None, persist_namespace: bool = False) -> OutputSchema:
     """
-    Executes the given Python code and returns the output or error message.
+    Execute python code with optional namespace persistence and timeout.
 
     Args:
         code (str): The Python code to execute.
+        timeout (int): Maximum time in seconds to allow for code execution.
+        new_namespace (Optional[dict]): Namespace to use for code execution.
+        persist_namespace (bool): Whether to persist the namespace after execution.
+
+    Returns:
+        OutputSchema: The result of the code execution, including output, error, and namespace.
     """
 
     # Extract the last expression from the code to evaluate it separately. Catch any syntax errors.
+    
+
     statements, expr, syntax_error = extract_last_expression(code)
     if syntax_error:
         return OutputSchema(
@@ -96,16 +115,7 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
 # FIXME: Capture stdout
 def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespace: dict):
     """
-    Target function for multiprocessing execution.
-    
-    :param statements: List of Python statements to execute
-    :type statements: Optional[List[str]]
-    :param expr: Final expression to evaluate
-    :type expr: str
-    :param queue: Queue for returning results
-    :type queue: mp.Queue
-    :param namespace: Execution namespace
-    :type namespace: dict
+    Target function for multiprocessing execution with stdout/stderr
 
     - Catches Any Exception (SyntaxError should be caught earlier)
     """
