@@ -1,3 +1,5 @@
+from contextlib import redirect_stderr, redirect_stdout
+import io
 import multiprocessing as mp
 import traceback
 
@@ -112,21 +114,39 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
     
     return result
 
-# FIXME: Capture stdout
-def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespace: dict):
+# FIXME: Capture stdout and stderr
+def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespace: dict) -> None:
     """
     Target function for multiprocessing execution with stdout/stderr
 
     - Catches Any Exception (SyntaxError should be caught earlier)
     """
+    stdout_buffer = io.StringIO()
+    stderr_buffer = io.StringIO()
     try:
-        # If there are statements, execute them with namespace 
-        if statements:
-            exec("\n".join(statements), namespace)
+        with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
+            # If there are statements, execute them with namespace 
+            if statements:
+                exec("\n".join(statements), namespace)
 
-        output = ""
-        if expr != "":
-            output = str(eval(expr, namespace))
+            output = ""
+            if expr:
+                eval_result = eval(expr, namespace)
+                # If eval returns a value, convert it to string for output
+                if eval_result is None:
+                    stdout_text = stdout_buffer.getvalue().strip()
+                    output = stdout_text if stdout_text else "None" # Eval result is None so return "None"
+                else:
+                    output = str(eval_result)
+            else:
+                # No expression to evaluate, capture stdout if available
+                stdout_text = stdout_buffer.getvalue().strip()
+                output = stdout_text if stdout_text else ""
+        
+        # Check stderr for any captured errors and append
+        stderr_text = stderr_buffer.getvalue().strip()
+        if stderr_text:
+            output = f"{output}\n[stderr]: {stderr_text}" if output else f"[stderr]: {stderr_text}"
 
         # Clean the namespace by removing any built-in or special variables
         clean_namespace(namespace)
@@ -143,21 +163,30 @@ def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespa
 
         # Clean the namespace by removing any built-in or special variables
         clean_namespace(namespace)
-        
+
+        # Collect any stdout and stderr output even in case of exception
+        stdout_text = stdout_buffer.getvalue().strip()
+        stderr_text = stderr_buffer.getvalue().strip()
+        context_data = {"stderr": stderr_text} if stderr_text else {}
+
         result = OutputSchema(
-            output="",
+            output=stdout_text,
             error=ExceptionInfo(
                 type=type(e).__name__,
                 message=str(e),
                 traceback=traceback.format_exc(),
-                extra_context={}
+                extra_context=context_data
             ),
             namespace=namespace,
             success=False
         )
 
     finally:
-        queue.put(result)
+        try:
+            queue.put(result)
+        except Exception as e:
+            print(f"Failed to put result in queue: {e}")
+            pass # Nothing we can do if putting result in queue fails
 
 if __name__ == "__main__":    
     print("Testing tool python repl tool")
