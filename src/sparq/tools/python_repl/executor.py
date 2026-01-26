@@ -106,7 +106,7 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
             success=False
         )
     else:
-        result = queue.get()
+        result = queue.get(timeout=20)
 
     # Update the namespace if execution was successful and persistence is desired
     if result.success and persist_namespace:
@@ -183,7 +183,7 @@ def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespa
 
     finally:
         try:
-            queue.put(result)
+            queue.put(result, timeout=20)
         except Exception as e:
             print(f"Failed to put result in queue: {e}")
             pass # Nothing we can do if putting result in queue fails
