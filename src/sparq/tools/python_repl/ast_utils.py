@@ -3,16 +3,14 @@ from typing import List, Optional, Tuple
 
 def extract_last_expression(code: str) -> Tuple[Optional[List[str]], str, Optional[SyntaxError]]:
     """
-    Docstring for extract_last_expression
+    Extracts the last expression from the given Python code.
+
+    Args:
+        code (str): The Python code to analyze.
     
-    :param code: Description
-    :type code: str
-    :return: Description
-    :rtype: Tuple[List[str] | None, str, SyntaxError | None]
-
-    - Catches SyntaxError
+    Returns:
+        Tuple[Optional[List[str]], str, Optional[SyntaxError]]: A tuple containing the list of statements before the last expression (or None if there are none), the last expression as a string, and a SyntaxError if one occurred (or None if no error occurred).
     """
-
     try:
         parsed_code = ast.parse(code)
     except SyntaxError as e:
