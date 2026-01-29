@@ -106,7 +106,7 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
             success=False
         )
     else:
-        result = queue.get(timeout=20)
+        result = queue.get(timeout=timeout+5)
 
     # Update the namespace if execution was successful and persistence is desired
     if result.success and persist_namespace:
