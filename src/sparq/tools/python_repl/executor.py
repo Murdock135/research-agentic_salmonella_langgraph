@@ -3,13 +3,34 @@ import io
 import multiprocessing as mp
 from queue import Empty
 import traceback
+import types
+import pickle
 
 from typing import Optional, List
 
 from sparq.tools.python_repl.ast_utils import extract_last_expression
-from sparq.tools.python_repl.namespace import get_persistent_namespace, clean_namespace
+from sparq.tools.python_repl.namespace import get_persistent_namespace, clean_namespace, get_modules_in_namespace
 from sparq.tools.python_repl.package_manager import PackageUtils as putils
 from sparq.tools.python_repl.schemas import OutputSchema, ExceptionInfo
+
+def pickle_vars(namespace: dict, original_keys: set) -> dict[str, object]:
+    new_vars = {}
+
+    for key in namespace:
+        if key not in original_keys:
+            # Grab new keys
+            value = namespace[key] 
+            if isinstance(value, types.ModuleType):
+                continue
+
+            # Pickle value and store in new_vars
+            try:
+                pickle.dumps(value)
+                new_vars[key] = value
+            except (pickle.PicklingError, TypeError, AttributeError):
+                new_vars[key] = f"<unpickleable>: {type(value).__name__}"
+    
+    return new_vars
 
 def execute_code(code: str, persist_namespace: bool = False, timeout: int = 10) -> OutputSchema:
     """
@@ -141,17 +162,26 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
 
     # Update the namespace if execution was successful and persistence is desired
     if result.success and persist_namespace:
-            new_namespace.update(result.namespace)
+        new_namespace.update(result.namespace)
+
+        if result.modules:
+            for var_name, module_name in result.modules.items():
+                try:
+                    new_namespace[var_name] = __import__(module_name)
+                except ImportError:
+                    pass # Module not available. Skip
     
     return result
 
-# FIXME: Capture stdout and stderr
 def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespace: dict, timeout: int) -> None:
     """
     Target function for multiprocessing execution with stdout/stderr
 
     - Catches Any Exception (SyntaxError should be caught earlier)
     """
+    # Track original keys
+    original_keys = set(namespace.keys())
+
     stdout_buffer = io.StringIO()
     stderr_buffer = io.StringIO()
     try:
@@ -165,7 +195,7 @@ def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespa
                 eval_result = eval(expr, namespace)
                 # If eval returns a value, convert it to string for output
                 if eval_result is None:
-                    stdout_text = stdout_buffer.getvalue().strip()
+                    stdout_text = stdout_buffer.getvalue().strip() # Capture any print statements when eval returns None
                     output = stdout_text if stdout_text else "None" # Eval result is None so return "None"
                 else:
                     output = str(eval_result)
@@ -180,14 +210,21 @@ def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespa
             output = f"{output}\n[stderr]: {stderr_text}" if output else f"[stderr]: {stderr_text}"
 
         # Clean the namespace by removing any built-in or special variables
+        # Pickle variables (skip modules)
+        # Get names of modules
         clean_namespace(namespace)
+        picklable_vars = pickle_vars(namespace, original_keys)
+        modules = get_modules_in_namespace(namespace)
 
         result = OutputSchema(
             output=output,
             error=None,
-            namespace=namespace,
+            namespace=picklable_vars, # Only include picklable variables in the namespace
             success=True
         )
+
+        if modules:
+            result.modules = modules
     
     # Catches Any Exception (SyntaxError should be caught earlier)
     except Exception as e:
@@ -207,7 +244,7 @@ def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespa
                 traceback=traceback.format_exc(),
                 extra_context=context_data
             ),
-            namespace=namespace,
+            namespace={}, # Return empty namespace on error since variables may be in inconsistent state
             success=False
         )
 
