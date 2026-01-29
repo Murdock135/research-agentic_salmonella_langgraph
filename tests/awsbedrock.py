@@ -1,9 +1,10 @@
 import boto3
 import os
 
-from config.load_env import load_env_vars
+from sparq.settings import Settings
 
-load_env_vars()
+settings = Settings()
+settings._load_env_variables()
 
 # Uses the AWS_PROFILE environment variable
 profile = os.getenv("AWS_PROFILE", "default")
