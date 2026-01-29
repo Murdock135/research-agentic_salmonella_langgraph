@@ -1,6 +1,7 @@
 from contextlib import redirect_stderr, redirect_stdout
 import io
 import multiprocessing as mp
+from queue import Empty
 import traceback
 
 from typing import Optional, List
@@ -79,13 +80,15 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
         )
     
     queue = mp.Queue()
+    extra_time = 5
     process = mp.Process(
         target=_target, 
         args=(
             statements,
             expr,
             queue,
-            new_namespace
+            new_namespace, 
+            timeout + extra_time
             )
         )
     
@@ -106,7 +109,35 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
             success=False
         )
     else:
-        result = queue.get(timeout=timeout+5)
+        try:
+            result = queue.get(timeout=5) # short timeout since process already finished
+        except Empty:
+            # Process finished but queue is empty
+            result = OutputSchema(
+                output="",
+                error=ExceptionInfo(
+                    type="QueueEmptyError",
+                    message="Result queue was empty.",
+                    traceback="",
+                    extra_context={}
+                ),
+                namespace=new_namespace or {},
+                success=False
+            )
+        except Exception as e:
+            # Catch any other errors related to queue retrieval
+            result = OutputSchema(
+                output="",
+                error=ExceptionInfo(
+                    type=type(e).__name__,
+                    message=str(e),
+                    traceback="",
+                    extra_context={}
+                ),
+                namespace=new_namespace or {},
+                success=False
+            )
+
 
     # Update the namespace if execution was successful and persistence is desired
     if result.success and persist_namespace:
@@ -115,7 +146,7 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
     return result
 
 # FIXME: Capture stdout and stderr
-def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespace: dict) -> None:
+def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespace: dict, timeout: int) -> None:
     """
     Target function for multiprocessing execution with stdout/stderr
 
@@ -160,7 +191,6 @@ def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespa
     
     # Catches Any Exception (SyntaxError should be caught earlier)
     except Exception as e:
-
         # Clean the namespace by removing any built-in or special variables
         clean_namespace(namespace)
 
@@ -183,7 +213,7 @@ def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespa
 
     finally:
         try:
-            queue.put(result, timeout=20)
+            queue.put(result, timeout=timeout)
         except Exception as e:
             print(f"Failed to put result in queue: {e}")
             pass # Nothing we can do if putting result in queue fails
