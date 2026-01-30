@@ -103,7 +103,10 @@ class Settings:
         # Determine the path to the .env file. Priority: user config dir > package dir > provided path
         env_path = self.USER_CONFIG_DIR / ".env" or self.PACKAGE_DIR / ".env" or Path(env_path)
         if env_path.exists():
-            load_dotenv(dotenv_path=env_path)
+            try:
+                load_dotenv(dotenv_path=env_path)
+            except Exception as e:
+                print(f"Failed to load .env file at {env_path}: {e}")
         else:
             self._create_template_env_file(env_path)
     
