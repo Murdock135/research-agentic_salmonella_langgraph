@@ -127,6 +127,40 @@ class PackageManager:
                 "success": False,
                 "message": f"Failed to install package '{package_name}': {e}"
             }
+        
+    @classmethod
+    def uninstall_package(cls, package_name: str) -> dict:
+        """
+        Uninstall a package.
+
+        :param package_name: Name of the package to uninstall.
+        :type package_name: str
+        :return: Result dictionary with success status and message.
+        :rtype: dict
+        """
+        if not cls.is_installed(package_name):
+            print(f"Package '{package_name}' is not installed.")
+            return {
+                "success": True,
+                "message": f"Package '{package_name}' is not installed."
+            }
+        
+        try:
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "uninstall", "-y", package_name],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            return {
+                "success": True,
+                "message": f"Package '{package_name}' uninstalled successfully."
+            }
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to uninstall package '{package_name}': {e}")
+            return {
+                "success": False,
+                "message": f"Failed to uninstall package '{package_name}': {e}"
+            }
 
 class PackageUtils(PackageManager):
     """Utility class for package management."""
