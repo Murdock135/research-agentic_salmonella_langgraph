@@ -61,6 +61,7 @@ def execute_code(code: str, persist_namespace: bool = False, timeout: int = 10) 
     while result.error and result.error.type in ("ModuleNotFoundError", "ImportError") and retries < max_retries:
         missing_package = putils.extract_package_name_error(result.error.message)
 
+        # If no package found, break
         if not missing_package:
             break
             
@@ -88,6 +89,7 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
         code (str): The Python code to execute.
         timeout (int): Maximum time in seconds to allow for code execution.
         new_namespace (Optional[dict]): Namespace to use for code execution.
+        modules (Optional[dict]): Modules to re-import in the execution namespace.
         persist_namespace (bool): Whether to persist the namespace after execution.
 
     Returns:
@@ -95,8 +97,6 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
     """
 
     # Extract the last expression from the code to evaluate it separately. Catch any syntax errors.
-    
-
     statements, expr, syntax_error = extract_last_expression(code)
     if syntax_error:
         return OutputSchema(
@@ -112,7 +112,7 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
         )
     
     extra_time = 5
-    ctx = mp.get_context("spawn")
+    ctx = mp.get_context("spawn") # New process context with no shared state
     queue = ctx.Queue()
 
     process = ctx.Process(
@@ -130,6 +130,7 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
     process.start()
     process.join(timeout)
 
+    # If process is still alive after timeout, terminate it
     if process.is_alive():
         process.terminate()
         result = OutputSchema(
@@ -178,11 +179,6 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
     if result.success and persist_namespace:
         new_namespace.update(result.namespace)
 
-        if result.modules:
-            # Store modules in namespace for next execution
-            existing_modules = new_namespace.get('__modules__', {}) # Get existing modules
-            existing_modules.update(result.modules) # Update with new modules
-            new_namespace['__modules__'] = existing_modules # Save back to namespace
     return result
 
 def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespace: dict, modules: dict, timeout: int) -> None:
@@ -235,15 +231,15 @@ def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespa
         picklable_vars = pickle_vars(namespace, original_keys)
         modules = get_modules_in_namespace(namespace)
 
+        if modules:
+            picklable_vars["__modules__"] = modules
+
         result = OutputSchema(
             output=output,
             error=None,
             namespace=picklable_vars, # Only include picklable variables in the namespace
             success=True
         )
-
-        if modules:
-            result.modules = modules
     
     # Catches Any Exception (SyntaxError should be caught earlier)
     except Exception as e:

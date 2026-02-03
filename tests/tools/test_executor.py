@@ -32,9 +32,9 @@ class TestExecutor(unittest.TestCase):
         result1 = execute_code(code1, persist_namespace=True, timeout=5)
         
         self.assertTrue(result1.success)
-        # Module should be in result.modules, NOT result.namespace
-        self.assertIn("math", result1.modules)
-        self.assertEqual(result1.modules["math"], "math")
+        # Module should be in result.namespace["__modules__"], NOT directly in result.namespace
+        self.assertIn("math", result1.namespace.get("__modules__", {}))
+        self.assertEqual(result1.namespace["__modules__"]["math"], "math")
         
         # Second execution: use math (should persist)
         code2 = "math.sqrt(16)"
@@ -45,8 +45,7 @@ class TestExecutor(unittest.TestCase):
         
         # Verify math is in persistent namespace
         persistent_ns = get_persistent_namespace()
-        self.assertIn("math", persistent_ns)
-        self.assertTrue(hasattr(persistent_ns["math"], "sqrt"))
+        self.assertIn("math", persistent_ns.get("__modules__", {}))
 
     def test_persistence(self):
         """Test that variables persist across executions."""
@@ -159,8 +158,8 @@ fib(10)
         result1 = execute_code(code1, persist_namespace=True, timeout=5)
         
         self.assertTrue(result1.success)
-        self.assertIn("math", result1.modules)
-        self.assertIn("json", result1.modules)
+        self.assertIn("math", result1.namespace.get("__modules__", {}))
+        self.assertIn("json", result1.namespace.get("__modules__", {}))
         
         # Use both modules
         code2 = "math.pi"

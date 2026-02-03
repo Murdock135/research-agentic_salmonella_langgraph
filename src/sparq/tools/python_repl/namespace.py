@@ -19,7 +19,7 @@ def clean_namespace(namespace: dict):
     :param namespace: The namespace dictionary to clean.
     :type namespace: dict
     """
-    keys_to_remove = [key for key in namespace if key.startswith("__") and key.endswith("__")]
+    keys_to_remove = [key for key in namespace if key.startswith("__") and key.endswith("__") and key != "__modules__"]
     for key in keys_to_remove:
         del namespace[key]
 

@@ -17,4 +17,3 @@ class OutputSchema(BaseModel):
     error: ExceptionInfo | None = Field(None, description="Information about any exception that occurred during execution.")
     namespace: Dict[str, Any] = Field(..., description="The namespace after code execution.")
     success: bool = Field(..., description="Indicates whether the code executed successfully.")
-    modules: Dict[str, Any] = Field(default_factory=dict, description="The modules in the namespace after code execution.")
