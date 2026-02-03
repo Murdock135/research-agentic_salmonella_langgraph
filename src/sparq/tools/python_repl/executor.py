@@ -49,27 +49,38 @@ def execute_code(code: str, persist_namespace: bool = False, timeout: int = 10) 
     else:
         namespace = {} # Fresh namespace for non-persistent execution
     
-    result = _execute_code_in_new_process(code, timeout=timeout, new_namespace=namespace, persist_namespace=persist_namespace)
+    # Get modules from namespace to re-import in subprocess
+    modules = namespace.get("__modules__", {})
+    
+    result = _execute_code_in_new_process(code, timeout=timeout, new_namespace=namespace, modules=modules, persist_namespace=persist_namespace)
 
     # On import error, install the package if whitelisted and retry execution
-    if result.error and "ModuleNotFoundError" in result.error.message:
+    # Loop to handle multiple missing packages (max 5 retries)
+    max_retries = 5
+    retries = 0
+    while result.error and result.error.type in ("ModuleNotFoundError", "ImportError") and retries < max_retries:
         missing_package = putils.extract_package_name_error(result.error.message)
-        if missing_package:
-            install_result = putils.install_package(missing_package)
-            if install_result["success"]:
-                # Retry execution after successful installation
-                result = _execute_code_in_new_process(code, timeout=timeout, new_namespace=namespace, persist_namespace=persist_namespace)
-            else:
-                # Update error with installation failure info
-                result.error.extra_context["package_install_failed"] = {
-                    "package": missing_package,
-                    "message": install_result["message"]
-                }
+
+        if not missing_package:
+            break
+            
+        install_result = putils.install_package(missing_package)
+        if not install_result["success"]:
+            # Update error with installation failure info
+            result.error.extra_context["package_install_failed"] = {
+                "package": missing_package,
+                "message": install_result["message"]
+            }
+            break
+        
+        # Retry execution after successful installation
+        result = _execute_code_in_new_process(code, timeout=timeout, new_namespace=namespace, modules=modules, persist_namespace=persist_namespace)
+        retries += 1
     
     return result
 
 
-def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Optional[dict] = None, persist_namespace: bool = False) -> OutputSchema:
+def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Optional[dict] = None, modules: Optional[dict] = None, persist_namespace: bool = False) -> OutputSchema:
     """
     Execute python code with optional namespace persistence and timeout.
 
@@ -100,15 +111,18 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
             success=False
         )
     
-    queue = mp.Queue()
     extra_time = 5
-    process = mp.Process(
+    ctx = mp.get_context("spawn")
+    queue = ctx.Queue()
+
+    process = ctx.Process(
         target=_target, 
         args=(
             statements,
             expr,
             queue,
-            new_namespace, 
+            new_namespace,
+            modules or {},
             timeout + extra_time
             )
         )
@@ -165,20 +179,25 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, new_namespace: Op
         new_namespace.update(result.namespace)
 
         if result.modules:
-            for var_name, module_name in result.modules.items():
-                try:
-                    new_namespace[var_name] = __import__(module_name)
-                except ImportError:
-                    pass # Module not available. Skip
-    
+            # Store modules in namespace for next execution
+            existing_modules = new_namespace.get('__modules__', {}) # Get existing modules
+            existing_modules.update(result.modules) # Update with new modules
+            new_namespace['__modules__'] = existing_modules # Save back to namespace
     return result
 
-def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespace: dict, timeout: int) -> None:
+def _target(statements: Optional[List[str]], expr: str, queue: mp.Queue, namespace: dict, modules: dict, timeout: int) -> None:
     """
     Target function for multiprocessing execution with stdout/stderr
 
     - Catches Any Exception (SyntaxError should be caught earlier)
     """
+    # Re-import modules from previous executions
+    for var_name, module_name in modules.items():
+        try:
+            namespace[var_name] = __import__(module_name)
+        except ImportError:
+            pass # Module not available. Skip
+
     # Track original keys
     original_keys = set(namespace.keys())
 

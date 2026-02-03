@@ -1,8 +1,11 @@
+"""Package manager for safe code execution with whitelisted packages."""
+
 from pathlib import Path
-import tomllib
+import shutil
 import subprocess
 import sys
 from typing import Optional
+
 
 class PackageManager:
     """Manages package installation and whitelisting for safe code execution."""
@@ -14,6 +17,21 @@ class PackageManager:
         "safe": [ "math", "json", "re", "datetime", "functools", "itertools", "collections", "random", "string", "time", "statistics" ],
         "whitelisted": [ "numpy", "pandas", "statsmodels", "scipy", "matplotlib", "seaborn", "plotly" ],
     }
+
+    @staticmethod
+    def _get_pip_command() -> list[str]:
+        """
+        Get the appropriate pip command for the current Python environment.
+
+        Prefers uv if available, falls back to pip.
+
+        :return: Command list to invoke pip.
+        :rtype: list[str]
+        """
+        if shutil.which("uv"):
+            return ["uv", "pip"]
+
+        return [sys.executable, "-m", "pip"]
 
     @classmethod
     def load_package_config(cls, config_path: Optional[str] = None) -> dict:
@@ -46,7 +64,7 @@ class PackageManager:
             if path and path.exists():
                 config_file = path
                 break
-        
+
         try:
             with open(config_file, "rb") as f:
                 config = tomllib.load(f)
@@ -61,7 +79,7 @@ class PackageManager:
             print(f"Error loading package config: {e}. \nUsing default package list.\n")
             cls._config = cls.DEFAULT_PACKAGE_LIST
             return cls._config
-        
+
     @classmethod
     def is_whitelisted(cls, package_name: str) -> bool:
         """
@@ -81,19 +99,18 @@ class PackageManager:
     @classmethod
     def is_installed(cls, package_name: str) -> bool:
         """
-        (Classmethod) Check if a package is already installed.
+        Check if a package is actually installed.
 
-        Args:
-            package_name (str): Name of the package to check.
-        Returns:
-            bool: True if the package is installed, False otherwise.
+        :param package_name: Name of the package to check.
+        :type package_name: str
+        :return: True if installed, False otherwise.
+        :rtype: bool
         """
-        try:
-            __import__(package_name)
-            return True
-        except ImportError:
-            return False
-        
+        import importlib
+        import importlib.util
+        importlib.invalidate_caches()
+        return importlib.util.find_spec(package_name) is not None
+
     @classmethod
     def install_package(cls, package_name: str) -> dict:
         """
@@ -108,33 +125,36 @@ class PackageManager:
             print(f"Package '{package_name}' is not whitelisted for installation.")
             return {
                 "success": False,
-                "message": f"Package '{package_name}' is not whitelisted for installation."
+                "message": f"Package '{package_name}' is not whitelisted for installation.",
             }
-        
+
         if cls.is_installed(package_name):
             print(f"Package '{package_name}' is already installed.")
             return {
                 "success": True,
-                "message": f"Package '{package_name}' is already installed."
+                "message": f"Package '{package_name}' is already installed.",
             }
-        
+
         try:
-            subprocess.check_call(
-                [sys.executable, "-m", "pip", "install", package_name],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
+            cmd = cls._get_pip_command() + ["install", package_name]
+            subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                check=True,
             )
             return {
                 "success": True,
-                "message": f"Package '{package_name}' installed successfully."
+                "message": f"Package '{package_name}' installed successfully.",
             }
         except subprocess.CalledProcessError as e:
-            print(f"Failed to install package '{package_name}': {e}")
+            error_detail = e.stderr.strip() if e.stderr else str(e)
+            print(f"Failed to install package '{package_name}': {error_detail}")
             return {
                 "success": False,
-                "message": f"Failed to install package '{package_name}': {e}"
+                "message": f"Failed to install package '{package_name}': {error_detail}",
             }
-        
+
     @classmethod
     def uninstall_package(cls, package_name: str) -> dict:
         """
@@ -145,33 +165,42 @@ class PackageManager:
         :return: Result dictionary with success status and message.
         :rtype: dict
         """
+        # If not installed, nothing to do
         if not cls.is_installed(package_name):
-            print(f"Package '{package_name}' is not installed.")
             return {
                 "success": True,
-                "message": f"Package '{package_name}' is not installed."
+                "message": f"Package '{package_name}' is not installed.",
             }
-        
+
         try:
-            subprocess.check_call(
-                [sys.executable, "-m", "pip", "uninstall", "-y", package_name],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
+            cmd = cls._get_pip_command() + ["uninstall", package_name]
+            subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                check=True,
             )
+
+            #Clear stale module cache entries
+            for key in list(sys.modules.keys()):
+                if key == package_name or key.startswith(f"{package_name}."):
+                    del sys.modules[key]
+
             return {
                 "success": True,
-                "message": f"Package '{package_name}' uninstalled successfully."
+                "message": f"Package '{package_name}' uninstalled successfully.",
             }
         except subprocess.CalledProcessError as e:
-            print(f"Failed to uninstall package '{package_name}': {e}")
+            error_detail = e.stderr.strip() if e.stderr else str(e)
             return {
                 "success": False,
-                "message": f"Failed to uninstall package '{package_name}': {e}"
+                "message": f"Failed to uninstall package '{package_name}': {error_detail}",
             }
+
 
 class PackageUtils(PackageManager):
     """Utility class for package management."""
-    
+
     @classmethod
     def extract_package_name_error(cls, error_message: str) -> str | None:
         """
@@ -187,5 +216,5 @@ class PackageUtils(PackageManager):
             if f"No module named '{pkg}'" in error_message:
                 return pkg
         return None
-        
+
 

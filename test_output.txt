@@ -1,0 +1,41 @@
+Installed 2 packages in 74ms
+test_config_caching (tests.tools.test_package_manager.TestPackageConfig.test_config_caching)
+Test that config is cached after first load. ... ok
+test_load_package_config (tests.tools.test_package_manager.TestPackageConfig.test_load_package_config)
+Test that package config loads correctly. ... ok
+test_aaa_whitelisted_package_auto_install (tests.tools.test_package_manager.TestPackageInstallation.test_aaa_whitelisted_package_auto_install)
+Test that whitelisted packages are auto-installed on ImportError. ... ok
+test_aab_multiple_package_imports (tests.tools.test_package_manager.TestPackageInstallation.test_aab_multiple_package_imports)
+Test importing multiple packages in one execution. ... ok
+test_aac_package_persistence_after_install (tests.tools.test_package_manager.TestPackageInstallation.test_aac_package_persistence_after_install)
+Test that installed packages persist across executions. ... ok
+test_extract_package_name_from_error (tests.tools.test_package_manager.TestPackageInstallation.test_extract_package_name_from_error)
+Test extracting package name from ModuleNotFoundError message. ... ok
+test_install_blocked_package_fails (tests.tools.test_package_manager.TestPackageInstallation.test_install_blocked_package_fails)
+Test that blocked packages cannot be installed. ... ok
+test_install_package (tests.tools.test_package_manager.TestPackageInstallation.test_install_package)
+Test Installing a package ... ok
+test_is_installed (tests.tools.test_package_manager.TestPackageInstallation.test_is_installed)
+Test PackageUtils.is_installed method. ... ok
+test_is_whitelisted (tests.tools.test_package_manager.TestPackageInstallation.test_is_whitelisted)
+Test PackageUtils.is_whitelisted method. ... ok
+test_non_whitelisted_package_fails (tests.tools.test_package_manager.TestPackageInstallation.test_non_whitelisted_package_fails)
+Test that non-whitelisted packages are NOT auto-installed. ... Package 'subprocess' is not whitelisted for installation.
+ok
+test_uninstall_package (tests.tools.test_package_manager.TestPackageInstallation.test_uninstall_package)
+Test uninstalling a package ... ok
+test_blocked_packages (tests.tools.test_package_manager.TestPackageManagerSmoke.test_blocked_packages)
+Test that dangerous packages are blocked. ... ok
+test_extract_package_name_formats (tests.tools.test_package_manager.TestPackageManagerSmoke.test_extract_package_name_formats)
+Test package name extraction from various error formats. ... ok
+test_safe_stdlib_packages (tests.tools.test_package_manager.TestPackageManagerSmoke.test_safe_stdlib_packages)
+Test that safe stdlib packages are allowed. ... ok
+test_whitelist_check (tests.tools.test_package_manager.TestPackageManagerSmoke.test_whitelist_check)
+Test whitelist checking without installation. ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 2.723s
+
+OK
+Package 'numpy' is already installed.
+Package 'numpy' is not installed.

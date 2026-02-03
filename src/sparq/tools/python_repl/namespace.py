@@ -1,5 +1,6 @@
 import types
 
+# Global persistent namespace for code execution
 _PERSISTENT_NAMESPACE = {}
 
 def get_persistent_namespace() -> dict:
