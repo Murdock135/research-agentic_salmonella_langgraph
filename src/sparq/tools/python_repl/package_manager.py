@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import sys
 from typing import Optional
+import tomllib
 
 
 class PackageManager:
