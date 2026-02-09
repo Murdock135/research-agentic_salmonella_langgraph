@@ -155,6 +155,9 @@ def get_cached_dataset_path(repo_id: str):
 def find_csv_excel_files(root_dir: Path | str) -> list[Path]:
     """
     Recursively find all CSV and Excel files in a directory.
+
+    This tool is especially useful for discovering datasets in a directory when the exact file names are not known. It searches for files with .csv, .xls, and .xlsx extensions.
+    For example, data inside huggingface cache directories often have unpredictable names, so this tool can help locate the relevant dataset files.
     
     Args:
         root_dir (Path): Root directory to search.
@@ -172,26 +175,3 @@ def find_csv_excel_files(root_dir: Path | str) -> list[Path]:
 
     exts = {'.csv', '.xls', '.xlsx'}
     return [f for f in root_dir.rglob("*") if f.suffix.lower() in exts]
-
-@tool
-def get_weather(location):
-    """
-    Get the 
-    """
-    pass
-
-# TODO: Add test code for tools here
-# if __name__ == "__main__":
-#     from config.load_env import load_env_vars
-#     load_env_vars()
-    
-#     from config.config import Config
-#     config = Config()
-    
-#     repo_id = "zayanhugsAI/socioecono_salmonella"
-#     location = get_cached_dataset_path.invoke(repo_id)
-#     breakpoint()
-#     data_files = find_csv_excel_files.invoke({'root_dir': location})
-    
-#     print(data_files)
-#     exit(0)
