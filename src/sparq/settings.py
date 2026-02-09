@@ -4,6 +4,7 @@ import os
 import sys
 
 import appdirs as ad
+from dotenv import load_dotenv
 
 class Settings:
     """Default settings for SPARQ with sensible defaults.
@@ -21,8 +22,9 @@ class Settings:
         self.PROJECT_ROOT = Path(__file__).parent.parent.parent
 
         # Create .config/sparq directory
-        self.USER_CONFIG_DIR = Path(ad.user_config_dir("sparq"))
+        self.USER_CONFIG_DIR = self._get_user_config_dir()
         self.USER_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        breakpoint()
 
         # Load environment variables from .env file
         self._load_env_variables(env_path)
@@ -50,6 +52,12 @@ class Settings:
         # They are only controlled by the developer, who will clone the repository and modify the prompts as needed.
         self.PROMPTS_DIR = prompts_dir or self.PACKAGE_DIR / self.CONFIG['paths']['PROMPTS_DIR']
         self.PROMPTS_DIR = Path(self.PROMPTS_DIR)
+
+    def _get_user_config_dir(self):
+        if sys.platform in ("darwin", "linux"):
+            return Path.home() / ".config" / "sparq"
+        else:
+            return Path(ad.user_config_dir("sparq"))
     
     def load_prompts(self) -> Dict[str, str]:
         """Load all prompts from the prompts directory."""
@@ -98,17 +106,18 @@ class Settings:
     
     def _load_env_variables(self, env_path: Path = None):
         """Load environment variables from a .env file if it exists."""
-        from dotenv import load_dotenv
+        paths = [
+            env_path,
+            self.USER_CONFIG_DIR / ".env",
+            self.PROJECT_ROOT / ".env",
+        ]
 
-        # Determine the path to the .env file. Priority: user config dir > package dir > provided path
-        env_path = self.USER_CONFIG_DIR / ".env" or self.PACKAGE_DIR / ".env" or Path(env_path)
-        if env_path.exists():
-            try:
-                load_dotenv(dotenv_path=env_path)
-            except Exception as e:
-                print(f"Failed to load .env file at {env_path}: {e}")
-        else:
-            self._create_template_env_file(env_path)
+        for path in paths:
+            if path and path.is_file():
+                breakpoint()
+                load_dotenv(dotenv_path=path)
+                print(f"Loaded environment variables from {path}")
+        
     
     def _create_template_env_file(self, env_path: Path):
         """Create a template .env file with placeholder values."""
