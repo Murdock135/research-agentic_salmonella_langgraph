@@ -24,7 +24,6 @@ class Settings:
         # Create .config/sparq directory
         self.USER_CONFIG_DIR = self._get_user_config_dir()
         self.USER_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        breakpoint()
 
         # Load environment variables from .env file
         self._load_env_variables(env_path)
@@ -114,9 +113,11 @@ class Settings:
 
         for path in paths:
             if path and path.is_file():
-                breakpoint()
                 load_dotenv(dotenv_path=path)
-                print(f"Loaded environment variables from {path}")
+                return
+        
+        # If no .env file exists, create a template one in the user config directory to guide the user in setting up their environment variables.
+        self._create_template_env_file(env_path or self.USER_CONFIG_DIR / ".env")
         
     
     def _create_template_env_file(self, env_path: Path):
