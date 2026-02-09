@@ -166,6 +166,23 @@ fib(10)
         result2 = execute_code(code2, persist_namespace=True, timeout=5)
         self.assertTrue(result2.success)
 
+    def test_saving_plots(self):
+        """Test that plots can be generated and saved."""
+        import os
+        
+        code = """import matplotlib.pyplot as plt
+plt.plot([1, 2, 3], [4, 5, 6])
+plt.savefig('test_plot.png')
+"""
+        result = execute_code(code, persist_namespace=False, timeout=5)
+        self.assertTrue(result.success)
+
+        # Check that the plot file was created
+        self.assertTrue(os.path.exists('test_plot.png'))
+
+        # Clean up the plot file after test
+        if os.path.exists('test_plot.png'):
+            os.remove('test_plot.png')
 
 if __name__ == "__main__":
     unittest.main()
