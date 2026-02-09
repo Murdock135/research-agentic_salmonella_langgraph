@@ -20,6 +20,8 @@ def pickle_vars(namespace: dict, original_keys: set) -> dict[str, object]:
         if key not in original_keys:
             # Grab new keys
             value = namespace[key] 
+
+            # Skip modules since they can't be pickled and will be re-imported in the subprocess
             if isinstance(value, types.ModuleType):
                 continue
 
