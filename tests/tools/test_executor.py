@@ -180,7 +180,7 @@ plt.savefig('test_plot.png')
         # Check that the plot file was created
         self.assertTrue(os.path.exists('test_plot.png'))
 
-        # Clean up the plot file after test
+        # Clean up: Delete the file after test
         if os.path.exists('test_plot.png'):
             os.remove('test_plot.png')
 

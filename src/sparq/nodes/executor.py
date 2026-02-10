@@ -1,9 +1,10 @@
 from sparq.schemas.state import State
 from sparq.schemas.output_schemas import Plan, ExecutorOutput
-from sparq.tools import tools
-from sparq.tools.python_repl import python_repl_tool
 from sparq.settings import Settings
 from sparq.utils import helpers
+from sparq.tools.python_repl.python_repl_tool import python_repl_tool
+from sparq.tools.filesystemtools import filesystemtools
+from sparq.tools.data_discovery_tools import load_dataset, get_sheet_names, find_csv_excel_files, get_cached_dataset_path
 
 from langchain_core.prompts import BasePromptTemplate, PromptTemplate
 from langchain_core.messages import SystemMessage
@@ -24,13 +25,12 @@ def executor_node(state: State, **kwargs):
     df_summaries = state['df_summaries']
     
     _tools = [
-        tools.load_dataset,
-        tools.get_sheet_names,
+        load_dataset,
+        get_sheet_names,
         python_repl_tool,
-        tools.find_csv_excel_files,
-        tools.get_cached_dataset_path,
-    ] + (tools.filesystemtools(working_dir=str(output_dir),
-                                   selected_tools=['write_file', 'read_file', 'list_directory', 'file_search']))
+        find_csv_excel_files,
+        get_cached_dataset_path,
+    ] + (filesystemtools(working_dir=str(output_dir), selected_tools='all'))
     
     system_prompt_template: BasePromptTemplate = PromptTemplate.from_template(prompt).partial(
         data_manifest=str(data_manifest),

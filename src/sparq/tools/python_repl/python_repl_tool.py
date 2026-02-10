@@ -6,7 +6,7 @@ from sparq.tools.python_repl.schemas import OutputSchema
 
 
 @tool(args_schema=PythonREPLInput, response_format='content_and_artifact')
-def python_repl_tool(code: str, persist_namespace: bool = False, timeout: int = 10) -> tuple[str, OutputSchema]:
+def python_repl_tool(code: str, persist_namespace: bool = False, timeout: int = 60*5) -> tuple[str, OutputSchema]:
     """
     Executes the given Python code in a REPL environment.
     Supports variable persistence across executions and automatic installation of 
@@ -14,8 +14,8 @@ def python_repl_tool(code: str, persist_namespace: bool = False, timeout: int = 
 
     Args:
         code: The Python code to execute.
-        persist_namespace: Whether to persist the namespace across executions.
-        timeout: The maximum time in seconds to allow for code execution.
+        persist_namespace: Whether to persist the namespace across executions. Default is False.
+        timeout: The maximum time in seconds to allow for code execution. Default is 5 minutes (300 seconds).
 
     Returns:
         str: The formatted message is shown to the LLM.
