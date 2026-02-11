@@ -70,7 +70,7 @@ class Agentic_system:
         self._get_node_definitions()
         self._build_graph()
 
-        input_data = {"query": user_query}
+        input_data = {"query": user_query} # This will go into the State schema expected by the graph
         async for chunk in self.graph.astream(input=input_data, stream_mode="updates"):
             print(chunk)
 

@@ -65,15 +65,17 @@ def planner_node(state: State, **kwargs):
     return {'plan': plan, 'data_manifest': manifest, 'df_summaries': df_summaries}
 
 def test_planner():
+    from sparq.settings import Settings
     print("Running test code for planner.py")
     
-    config = Config()
-    llm = helpers.get_llm()
+    s = Settings()
+    llm_config = s.LLM_CONFIG
+    llm = helpers.get_llm(model=llm_config['planner']['model'], provider=llm_config['planner']['provider'])
     system_prompt = "Create a plan to answer the user query"
     user_query = "What is the relation between time of day and traffic in Kuala Lumpur, Malaysia?"
     input = {"query": user_query}
     
-    response = planner_node(state=input, sys_prompt=system_prompt, llm=llm, config=config)
+    response = planner_node(state=input, sys_prompt=system_prompt, llm=llm, settings=s)
     print(response['plan'].pretty_print())
     
 if __name__ == "__main__":
