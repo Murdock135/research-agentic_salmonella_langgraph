@@ -8,7 +8,7 @@ from sparq.nodes.router import router_func, router_node
 from sparq.nodes.aggregator import aggregator_node
 from sparq.nodes.saver import saver_node
 from sparq.schemas.state import State
-from sparq.utils.helpers import get_llm
+from sparq.utils.get_llm import get_llm
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import RetryPolicy
