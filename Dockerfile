@@ -40,7 +40,7 @@ COPY . .
 RUN --mount=type=cache,target=/root/.cache/uv \
   uv sync --frozen --no-dev
 
-ENTRYPOINT ["python", "-m", "core.main"]
+ENTRYPOINT ["python", "-m", "sparq.main -t"]
 CMD []
 
 # ---------- Development image ----------
@@ -53,17 +53,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   neovim nano ripgrep fd-find unzip \
   && rm -rf /var/lib/apt/lists/*
 
-# Copy manifests and install deps incl. dev groups
+# Copy manifests and install deps incl. dev groups (no project yet)
 COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-  uv sync --frozen
+  uv sync --frozen --no-install-project
 
 ENV PATH="/app/.venv/bin:$PATH" \
   PYTHONUNBUFFERED=1
 
-# Copy source and make editable install for dev inner-loop
+# Copy source then install the project itself
 COPY . .
-# RUN uv pip install --editable .
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv sync --frozen
 
 CMD ["bash"]
 

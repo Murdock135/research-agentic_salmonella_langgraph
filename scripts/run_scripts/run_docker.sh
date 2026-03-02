@@ -4,7 +4,7 @@ set -euo pipefail
 IMAGE_NAME="sparq_production"
 STAGE_NAME="prod"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 DOCKERFILE_PATH="$PROJECT_ROOT/Dockerfile"
 
 echo "[run.sh] Project root: $PROJECT_ROOT"
