@@ -6,7 +6,13 @@ This project uses AWS Bedrock models. In order to run SPARQ, you will need AWS A
 
 # Important commands
 
+For first time setup:
 ```bash
 aws configure sso
 aws sts get-caller-identity --profile <aws_profile>
+```
+
+Then to login after token expiration:
+```bash
+aws sso login --profile <aws_profile>
 ```

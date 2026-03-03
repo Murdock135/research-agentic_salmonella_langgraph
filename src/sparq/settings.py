@@ -6,6 +6,8 @@ import sys
 import appdirs as ad
 from dotenv import load_dotenv
 
+from sparq.utils.get_package_dir import get_package_dir, get_project_root
+
 class Settings:
     """Default settings for SPARQ with sensible defaults.
     
@@ -18,9 +20,12 @@ class Settings:
     """
     def __init__(self, prompts_dir: Path = None, config_path: Path = None, env_path: Path = None):
         # Set package and project root directories
-        self.PACKAGE_DIR = Path(__file__).parent
-        self.PROJECT_ROOT = Path(__file__).parent.parent.parent
+        self.PACKAGE_DIR = get_package_dir()
+        self.PROJECT_ROOT = get_project_root()
 
+        if self.PACKAGE_DIR is None or self.PROJECT_ROOT is None:
+            raise RuntimeError("Could not determine package or project root directory.")
+        
         # Create .config/sparq directory
         self.USER_CONFIG_DIR = self._get_user_config_dir()
         self.USER_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
