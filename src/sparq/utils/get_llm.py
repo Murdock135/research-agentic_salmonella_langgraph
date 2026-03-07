@@ -27,18 +27,29 @@ def _make_bedrock(model: str, provider: str):
     from langchain_aws import ChatBedrock
     import boto3
 
-    region = os.getenv('AWS_DEFAULT_REGION')
-    if not region:
-        raise ValueError("AWS_DEFAULT_REGION not found")
+    # Kept for interface consistency with other factories.
+    _ = provider
 
-    profile = os.getenv('AWS_PROFILE')
-    session = boto3.Session(profile_name=profile, region_name=region)
-    client = session.client(service_name='bedrock-runtime')
+    region = os.getenv("AWS_DEFAULT_REGION")
+    profile = os.getenv("AWS_PROFILE")
+
+    missing = []
+    if not region:
+        missing.append("AWS_DEFAULT_REGION")
+    if not profile:
+        missing.append("AWS_PROFILE")
+    if missing:
+        raise ValueError(f"Missing required environment variable(s): {', '.join(missing)}")
 
     try:
+        session = boto3.Session(profile_name=profile, region_name=region)
+        client = session.client(service_name="bedrock-runtime")
         return ChatBedrock(model=model, client=client)
-    except Exception as e:
-        raise ValueError(f"Error initializing AWS Bedrock model {model}:\n{e}")
+    except Exception as exc:
+        raise ValueError(
+            f"Failed to initialize Bedrock model '{model}' "
+            f"(profile='{profile}', region='{region}')."
+        ) from exc
 
 
 _PROVIDER_FACTORIES = {
