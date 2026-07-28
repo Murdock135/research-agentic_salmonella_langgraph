@@ -124,7 +124,7 @@
     },
     {
         "id": 14,
-        "text": "What does SENS-D predict will be our biggest Salmonella risk over the next 10 weeks?",
+        "text": "What do you predict will be our biggest Salmonella risk over the next 10 weeks?",
         "grade": 5,
         "weather_related": false,
         "follow_ups": []
@@ -164,13 +164,6 @@
     },
     {
         "id": 19,
-        "text": "Is Salmonella present or absent in the sample?",
-        "grade": 1,
-        "weather_related": false,
-        "follow_ups": []
-    },
-    {
-        "id": 20,
         "text": "What is the Salmonella level—accurate and repeatable quantification within a range of 1 to 1000 cfu/g with variation within 10 cfu?",
         "grade": 3,
         "weather_related": false,
