@@ -6,13 +6,16 @@ Note: Currently, this only uses test questions that are NOT related to weather.
 Usage:
 uv run eval/batch_eval.py : Run SPARQ on all questions
 uv run eval/batch_eval.py k : Run SPARQ on first k questions
+
+TODO:
+1. Return SystemOutput by SPARQ. How do we collect results from concurrent SPARQ runs?
+    - run_bounded() -> ?
+    - in main(), asyncio.run() -> ?
 """
 
 import asyncio
-import sys
 import json
-import uuid
-
+import sys
 from pathlib import Path
 
 from sparq.architectures.v1.system import Agentic_system
@@ -55,9 +58,9 @@ def load_data(file_path: str | Path) -> tuple[int, list[dict]]:
     
     return len(questions), questions
 
-async def run_bounded(semaphore: asyncio.Semaphore, agentic_system: Agentic_system, question: str, run_id: str):
+async def run_bounded(semaphore: asyncio.Semaphore, agentic_system: Agentic_system, question: str):
     async with semaphore:
-        await agentic_system.run(question, run_id)
+        await agentic_system.run(question)
 
 async def main():
     n, _questions = load_data(FILE_PATH)
@@ -92,8 +95,7 @@ async def main():
         agentic_system.settings.paths.output_dir = output_dir # set the output dir
         agentic_system.settings.paths.set_run_dir() # recompute run_dir from the new output_dir # type: ignore
 
-        run_id = str(uuid.uuid4())
-        tasks.append(run_bounded(semaphore, agentic_system, question['text'], run_id))
+        tasks.append(run_bounded(semaphore, agentic_system, question['text']))
 
     # Get batch results (at most MAX_CONCURRENT_RUNS running at once)
     _ = await asyncio.gather(*tasks)
