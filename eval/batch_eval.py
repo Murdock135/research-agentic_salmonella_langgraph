@@ -61,7 +61,7 @@ async def run_bounded(semaphore: asyncio.Semaphore, agentic_system: Agentic_syst
 
 async def main():
     n, _questions = load_data(FILE_PATH)
-    questions = [q for q in _questions if not q['weather_related']]
+    questions = [q for q in _questions if not q['weather_related'] and q['grade'] != -1]
     
     # Make the root directory for results (one subdirectory per experiment script,
     # e.g. experiments/results/00_results/ for this file, 01_results/ for the next)
