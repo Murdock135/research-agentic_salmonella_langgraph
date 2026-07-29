@@ -9,7 +9,7 @@ from sparq.tools.python_repl.executor import execute_code
 from pathlib import Path
 from typing import Annotated
 
-def make_load_dataset_tool(ns_path: str):
+def make_load_dataset_tool(workspace: str, ns_path: str):
     """
     Factory that returns a load_dataset tool writing into the run-scoped namespace at ns_path.
 
@@ -41,7 +41,7 @@ def make_load_dataset_tool(ns_path: str):
         # and the DataFrame is written into ns_path by the subprocess — avoiding the
         # cross-process pickle deserialization problem. See docs/repl.md for details.
         code = f"import pandas as pd\n{load_line}\n{var_name}.head().to_markdown()"
-        result = execute_code(code, ns_path=ns_path)
+        result = execute_code(code, workspace=workspace, ns_path=ns_path)
 
         if result.success:
             return f"Loaded dataset into variable `{var_name}`.\n\nPreview:\n{result.output}"

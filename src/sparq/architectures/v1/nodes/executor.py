@@ -180,7 +180,7 @@ async def execute_single_step_worker(step: Step, run_id: str, llm_config: LLMSet
     llm_object = get_llm(llm_config.model_name, llm_config.provider)
     data_context = state.data_context
     _tools = [
-        make_load_dataset_tool(worker_ns),
+        make_load_dataset_tool(str(output_dir), worker_ns),
         get_sheet_names,
         make_python_repl_tool(str(output_dir), worker_ns),
         find_csv_excel_files,
