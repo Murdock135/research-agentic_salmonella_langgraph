@@ -57,12 +57,13 @@ def _namespace_summary(namespace: dict) -> dict:
     return summary
 
 
-def execute_code(code: str, ns_path: str | None = None, timeout: int = 2*60) -> OutputSchema:
+def execute_code(code: str, workspace: str, ns_path: str | None = None, timeout: int = 2*60) -> OutputSchema:
     """
     Execute Python code with optional namespace persistence and timeout.
 
     Args:
         code: Python code to execute
+        workspace: Directory for the code to run in
         ns_path: Path to a persistent namespace pickle file. If None, a temporary namespace is used and deleted after execution.
         timeout: Maximum execution time in seconds
 
@@ -70,11 +71,12 @@ def execute_code(code: str, ns_path: str | None = None, timeout: int = 2*60) -> 
         OutputSchema containing execution results, including output, errors, and a
         JSON-safe namespace summary (complex objects shown as type strings).
     """
+
+    # If a path for a namespace is provided, that means the agent wants to use a persistent namespace. 
+    # If a path for a namespace is not provided, create a temporary namespace for the agent to work in.
     if ns_path is not None:
-        # namespace should be persisted
         ns_is_temp = False
     else:
-        # namespace should not be persisted
         ns_fd, ns_path = tempfile.mkstemp(suffix="_ns.pkl")
         with os.fdopen(ns_fd, "wb") as f:
             pickle.dump({}, f)
@@ -84,7 +86,7 @@ def execute_code(code: str, ns_path: str | None = None, timeout: int = 2*60) -> 
     result_fd, result_path = tempfile.mkstemp(suffix="_result.json")
     os.close(result_fd)
 
-    result = _execute_code_in_new_process(code, timeout=timeout, ns_path=ns_path, result_path=result_path)
+    result = _execute_code_in_new_process(code, workspace, timeout=timeout, ns_path=ns_path, result_path=result_path)
 
     # On import error, install the package if whitelisted and retry execution
     # TODO: Make max_retries a global if possible
@@ -104,7 +106,7 @@ def execute_code(code: str, ns_path: str | None = None, timeout: int = 2*60) -> 
             }
             break
 
-        result = _execute_code_in_new_process(code, timeout=timeout, ns_path=ns_path, result_path=result_path)
+        result = _execute_code_in_new_process(code, workspace, timeout=timeout, ns_path=ns_path, result_path=result_path)
         retries += 1
 
     # Unlink temporary namespace (if created) and result files
@@ -121,7 +123,7 @@ def execute_code(code: str, ns_path: str | None = None, timeout: int = 2*60) -> 
     return result
 
 
-def _execute_code_in_new_process(code: str, timeout: int = 10, ns_path: str = "", result_path: str = "") -> OutputSchema:
+def _execute_code_in_new_process(code: str, workspace: str, timeout: int = 10, ns_path: str = "", result_path: str = "") -> OutputSchema:
     """
     Execute Python code in a subprocess, reading/writing namespace via files.
 
@@ -138,7 +140,7 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, ns_path: str = ""
     # Spawn a fresh child process per execution for full isolation and timeout control.
     # Syntax errors are caught naturally inside _target via ast.parse.
     ctx = mp.get_context("spawn")
-    process = ctx.Process(target=_target, args=(code, ns_path, result_path))
+    process = ctx.Process(target=_target, args=(code, workspace, ns_path, result_path))
     process.start()
     process.join(timeout)
 
@@ -182,7 +184,7 @@ def _execute_code_in_new_process(code: str, timeout: int = 10, ns_path: str = ""
         )
 
 
-def _target(code: str, ns_path: str, result_path: str) -> None:
+def _target(code: str, workspace: str, ns_path: str, result_path: str) -> None:
     """
     Target function run inside the spawned subprocess.
 
@@ -199,6 +201,9 @@ def _target(code: str, ns_path: str, result_path: str) -> None:
     # Force a non-interactive backend so plt.show() can't pop up a GUI window
     # from this headless subprocess; must be set before matplotlib is imported.
     os.environ.setdefault("MPLBACKEND", "Agg")
+
+    # Set the working directory
+    os.chdir(workspace)
 
     result = OutputSchema(output="", error=None, success=False, namespace={})
 

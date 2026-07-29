@@ -1,3 +1,5 @@
+import shutil
+import tempfile
 import unittest
 
 from sparq.tools.python_repl.python_repl_tool import make_python_repl_tool
@@ -9,10 +11,12 @@ class TestPythonReplTool(unittest.TestCase):
     def setUp(self):
         """Create a fresh run-scoped namespace and tool before each test."""
         self.ns_path = get_ns_path("test")
-        self.tool = make_python_repl_tool(self.ns_path)
+        self.workspace = tempfile.mkdtemp()
+        self.tool = make_python_repl_tool(self.workspace, self.ns_path)
 
     def tearDown(self):
         cleanup_ns("test")
+        shutil.rmtree(self.workspace, ignore_errors=True)
 
     def test_simple_execution(self):
         """Test basic code execution returns success message."""

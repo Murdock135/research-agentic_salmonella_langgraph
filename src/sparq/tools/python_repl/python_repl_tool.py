@@ -4,7 +4,8 @@ from sparq.tools.python_repl.schemas import PythonREPLInput
 from sparq.tools.python_repl.executor import execute_code
 from sparq.tools.python_repl.schemas import OutputSchema
 
-def make_python_repl_tool(ns_path: str):
+
+def make_python_repl_tool(workspace: str, ns_path: str):
     @tool(args_schema=PythonREPLInput, response_format='content_and_artifact')
     def python_repl_tool(code: str = "", persist_namespace: bool = False) -> tuple[str, OutputSchema]:
         """
@@ -22,7 +23,7 @@ def make_python_repl_tool(ns_path: str):
         Notes
         - Functions are not persisted across executions because they are not picklable. They are instead stored in the `__unpicklable__` key of the namespace.
         """
-        execution_result = execute_code(code or "", ns_path=ns_path if persist_namespace else None)
+        execution_result = execute_code(code or "", workspace=workspace, ns_path=ns_path if persist_namespace else None)
         
         # Create clean message for LLM
         if execution_result.success:

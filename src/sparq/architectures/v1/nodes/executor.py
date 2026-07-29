@@ -182,7 +182,7 @@ async def execute_single_step_worker(step: Step, run_id: str, llm_config: LLMSet
     _tools = [
         make_load_dataset_tool(worker_ns),
         get_sheet_names,
-        make_python_repl_tool(worker_ns),
+        make_python_repl_tool(str(output_dir), worker_ns),
         find_csv_excel_files,
         get_cached_dataset_path,
     ] + (filesystemtools(working_dir=str(output_dir), selected_tools='all'))

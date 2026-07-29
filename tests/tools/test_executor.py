@@ -1,3 +1,5 @@
+import shutil
+import tempfile
 import unittest
 
 from sparq.tools.python_repl.executor import execute_code
@@ -7,16 +9,18 @@ from sparq.tools.python_repl.namespace import get_ns_path, cleanup_ns
 class TestExecutor(unittest.TestCase):
 
     def setUp(self):
-        """Create a fresh run-scoped namespace before each test."""
+        """Create a fresh run-scoped namespace and workspace before each test."""
         self.ns_path = get_ns_path("test")
+        self.workspace = tempfile.mkdtemp()
 
     def tearDown(self):
         cleanup_ns("test")
-    
+        shutil.rmtree(self.workspace, ignore_errors=True)
+
     def test_basic_execution(self):
         """Test basic variable assignment and expression evaluation."""
         code = "a = 1\nb = 2\na + b"
-        result = execute_code(code, ns_path=None, timeout=5)
+        result = execute_code(code, workspace=self.workspace, ns_path=None, timeout=5)
         
         self.assertTrue(result.success)
         self.assertEqual(result.output, "3")
@@ -31,7 +35,7 @@ class TestExecutor(unittest.TestCase):
         """Test module import and usage."""
         # First execution: import math
         code1 = "import math"
-        result1 = execute_code(code1, ns_path=self.ns_path, timeout=5)
+        result1 = execute_code(code1, workspace=self.workspace, ns_path=self.ns_path, timeout=5)
         
         self.assertTrue(result1.success)
         # Module should be in result.namespace["__modules__"], NOT directly in result.namespace
@@ -40,7 +44,7 @@ class TestExecutor(unittest.TestCase):
         
         # Second execution: use math (should persist)
         code2 = "math.sqrt(16)"
-        result2 = execute_code(code2, ns_path=self.ns_path, timeout=5)
+        result2 = execute_code(code2, workspace=self.workspace, ns_path=self.ns_path, timeout=5)
         
         self.assertTrue(result2.success)
         self.assertEqual(result2.output, "4.0")
@@ -50,30 +54,30 @@ class TestExecutor(unittest.TestCase):
     def test_persistence(self):
         """Test that variables persist across executions."""
         # Execution 1: Define variable
-        result1 = execute_code("x = 10", ns_path=self.ns_path, timeout=5)
+        result1 = execute_code("x = 10", workspace=self.workspace, ns_path=self.ns_path, timeout=5)
         self.assertTrue(result1.success)
         self.assertIn("x", result1.namespace)
         
         # Execution 2: Use persisted variable
-        result2 = execute_code("y = x + 5", ns_path=self.ns_path, timeout=5)
+        result2 = execute_code("y = x + 5", workspace=self.workspace, ns_path=self.ns_path, timeout=5)
         self.assertTrue(result2.success)
         self.assertEqual(result2.output, "")  # No expression, just assignment
         self.assertIn("y", result2.namespace)
         self.assertEqual(result2.namespace["y"], 15)
         
         # Execution 3: Access both variables
-        result3 = execute_code("x + y", ns_path=self.ns_path, timeout=5)
+        result3 = execute_code("x + y", workspace=self.workspace, ns_path=self.ns_path, timeout=5)
         self.assertTrue(result3.success)
         self.assertEqual(result3.output, "25")
 
     def test_non_persistence(self):
         """Test that variables don't persist when ns_path=None."""
         # Execution 1: Define variable
-        result1 = execute_code("x = 10", ns_path=None, timeout=5)
+        result1 = execute_code("x = 10", workspace=self.workspace, ns_path=None, timeout=5)
         self.assertTrue(result1.success)
         
         # Execution 2: Try to use variable (should fail)
-        result2 = execute_code("x + 5", ns_path=None, timeout=5)
+        result2 = execute_code("x + 5", workspace=self.workspace, ns_path=None, timeout=5)
         self.assertFalse(result2.success)
         self.assertIsNotNone(result2.error)
         self.assertEqual(result2.error.type, "NameError")
@@ -81,7 +85,7 @@ class TestExecutor(unittest.TestCase):
     def test_syntax_error(self):
         """Test handling of syntax errors."""
         code = "if True"  # Missing colon
-        result = execute_code(code, ns_path=None, timeout=5)
+        result = execute_code(code, workspace=self.workspace, ns_path=None, timeout=5)
         
         self.assertFalse(result.success)
         self.assertIsNotNone(result.error)
@@ -90,7 +94,7 @@ class TestExecutor(unittest.TestCase):
     def test_runtime_error(self):
         """Test handling of runtime errors."""
         code = "1 / 0"
-        result = execute_code(code, ns_path=None, timeout=5)
+        result = execute_code(code, workspace=self.workspace, ns_path=None, timeout=5)
         
         self.assertFalse(result.success)
         self.assertIsNotNone(result.error)
@@ -99,7 +103,7 @@ class TestExecutor(unittest.TestCase):
     def test_timeout(self):
         """Test that code execution times out properly."""
         code = "import time\ntime.sleep(10)"
-        result = execute_code(code, ns_path=None, timeout=1)
+        result = execute_code(code, workspace=self.workspace, ns_path=None, timeout=1)
         
         self.assertFalse(result.success)
         self.assertIsNotNone(result.error)
@@ -113,7 +117,7 @@ def add(a, b):
 
 add(3, 5)
 """
-        result = execute_code(code, ns_path=None, timeout=5)
+        result = execute_code(code, workspace=self.workspace, ns_path=None, timeout=5)
         
         self.assertTrue(result.success)
         self.assertEqual(result.output, "8")
@@ -129,7 +133,7 @@ def fib(n):
 
 fib(10)
 """
-        result = execute_code(code, ns_path=None, timeout=5)
+        result = execute_code(code, workspace=self.workspace, ns_path=None, timeout=5)
         
         self.assertTrue(result.success)
         self.assertEqual(result.output, "55")
@@ -137,7 +141,7 @@ fib(10)
     def test_unpicklable_object(self):
         """Test handling of unpicklable objects."""
         code = "f = lambda x: x * 2"                                        # Lambda functions are not picklable
-        result = execute_code(code, ns_path=None, timeout=5)
+        result = execute_code(code, workspace=self.workspace, ns_path=None, timeout=5)
         
         self.assertTrue(result.success)
         self.assertIn("f", result.namespace['__unpicklable__'])
@@ -145,7 +149,7 @@ fib(10)
     def test_print_statements(self):
         """Test that print statements are captured."""
         code = "print('Hello, World!')"
-        result = execute_code(code, ns_path=None, timeout=5)
+        result = execute_code(code, workspace=self.workspace, ns_path=None, timeout=5)
         
         self.assertTrue(result.success)
         self.assertEqual(result.output, "Hello, World!")
@@ -153,7 +157,7 @@ fib(10)
     def test_multiple_imports(self):
         """Test importing multiple modules."""
         code1 = "import math\nimport json"
-        result1 = execute_code(code1, ns_path=self.ns_path, timeout=5)
+        result1 = execute_code(code1, workspace=self.workspace, ns_path=self.ns_path, timeout=5)
         
         self.assertTrue(result1.success)
         self.assertIn("math", result1.namespace.get("__modules__", {}))
@@ -161,7 +165,7 @@ fib(10)
         
         # Use both modules
         code2 = "math.pi"
-        result2 = execute_code(code2, ns_path=self.ns_path, timeout=5)
+        result2 = execute_code(code2, workspace=self.workspace, ns_path=self.ns_path, timeout=5)
         self.assertTrue(result2.success)
 
     def test_submodule_alias_persistence(self):
@@ -171,31 +175,27 @@ fib(10)
         would fail with AttributeError. importlib.import_module("urllib.parse") returns the
         correct submodule.
         """
-        result1 = execute_code("import urllib.parse as urlparse", ns_path=self.ns_path, timeout=5)
+        result1 = execute_code("import urllib.parse as urlparse", workspace=self.workspace, ns_path=self.ns_path, timeout=5)
         self.assertTrue(result1.success)
         self.assertEqual(result1.namespace.get("__modules__", {}).get("urlparse"), "urllib.parse")
 
-        result2 = execute_code("urlparse.quote('hello world')", ns_path=self.ns_path, timeout=5)
+        result2 = execute_code("urlparse.quote('hello world')", workspace=self.workspace, ns_path=self.ns_path, timeout=5)
         self.assertTrue(result2.success)
         self.assertEqual(result2.output, "hello%20world")
 
     def test_saving_plots(self):
         """Test that plots can be generated and saved."""
         import os
-        
+
         code = """import matplotlib.pyplot as plt
 plt.plot([1, 2, 3], [4, 5, 6])
 plt.savefig('test_plot.png')
 """
-        result = execute_code(code, ns_path=None, timeout=5)
+        result = execute_code(code, workspace=self.workspace, ns_path=None, timeout=5)
         self.assertTrue(result.success)
 
-        # Check that the plot file was created
-        self.assertTrue(os.path.exists('test_plot.png'))
-
-        # Clean up: Delete the file after test
-        if os.path.exists('test_plot.png'):
-            os.remove('test_plot.png')
+        # Check that the plot file was created inside the workspace dir
+        self.assertTrue(os.path.exists(os.path.join(self.workspace, 'test_plot.png')))
 
     def test_matplotlib_uses_non_interactive_backend(self):
         """Test that matplotlib is forced onto a non-interactive backend, so plt.show()
@@ -203,7 +203,7 @@ plt.savefig('test_plot.png')
         code = """import matplotlib
 matplotlib.get_backend()
 """
-        result = execute_code(code, ns_path=None, timeout=5)
+        result = execute_code(code, workspace=self.workspace, ns_path=None, timeout=5)
         self.assertTrue(result.success)
         self.assertEqual(result.output.lower(), "agg")
 
@@ -217,9 +217,9 @@ plt.plot([1, 2, 3], [4, 5, 6])
 plt.savefig('test_show_plot.png')
 plt.show()
 """
-        result = execute_code(code, ns_path=None, timeout=5)
+        result = execute_code(code, workspace=self.workspace, ns_path=None, timeout=5)
         self.assertTrue(result.success)
-        self.assertTrue(os.path.exists('test_show_plot.png'))
+        self.assertTrue(os.path.exists(os.path.join(self.workspace, 'test_show_plot.png')))
 
         if os.path.exists('test_show_plot.png'):
             os.remove('test_show_plot.png')
@@ -227,7 +227,7 @@ plt.show()
     def test_traceback_shows_source_line(self):
         """Test that runtime error tracebacks reference '<repl>' and show the offending source line."""
         code = "x = [1, 2, 3]\nfor item in x.sort():\n    print(item)"
-        result = execute_code(code, ns_path=None, timeout=5)
+        result = execute_code(code, workspace=self.workspace, ns_path=None, timeout=5)
         self.assertFalse(result.success)
         self.assertIsNotNone(result.error)
         # The traceback must reference "<repl>" (not the opaque "<string>")

@@ -14,5 +14,5 @@ class ExceptionInfo(BaseModel):
 class OutputSchema(BaseModel):
     output: str = Field(..., description="The standard output from executing the code.")
     error: ExceptionInfo | None = Field(None, description="Information about any exception that occurred during execution.")
-    namespace: Dict[str, Any] = Field(..., description="The namespace after code execution.")
+    namespace: Dict[str, Any] = Field(..., description="The namespace after code execution.") # TODO: Re-evaluate whether this field is needed.
     success: bool = Field(..., description="Indicates whether the code executed successfully.")

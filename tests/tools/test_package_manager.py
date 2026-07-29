@@ -1,3 +1,5 @@
+import shutil
+import tempfile
 import unittest
 import subprocess
 import sys
@@ -54,11 +56,13 @@ class TestPackageManagerSmoke(unittest.TestCase):
 class TestPackageInstallation(unittest.TestCase):
     
     def setUp(self):
-        """Create a fresh run-scoped namespace before each test."""
+        """Create a fresh run-scoped namespace and workspace before each test."""
         self.ns_path = get_ns_path("test")
+        self.workspace = tempfile.mkdtemp()
 
     def tearDown(self):
         cleanup_ns("test")
+        shutil.rmtree(self.workspace, ignore_errors=True)
 
     @classmethod
     def setUpClass(cls):
@@ -89,7 +93,7 @@ import numpy as np
 arr = np.array([1, 2, 3])
 arr.mean()
 """
-        result = execute_code(code, ns_path=self.ns_path, timeout=30)
+        result = execute_code(code, workspace=self.workspace, ns_path=self.ns_path, timeout=30)
         
         # Should succeed after auto-installation
         self.assertTrue(result.success, f"Failed: {result.error}")
@@ -102,7 +106,7 @@ arr.mean()
         """Test that non-whitelisted packages are NOT auto-installed."""
         # Try to import a non-whitelisted package
         code = "import some_random_nonexistent_package"
-        result = execute_code(code, ns_path=None, timeout=10)
+        result = execute_code(code, workspace=self.workspace, ns_path=None, timeout=10)
         
         # Should fail with ModuleNotFoundError
         self.assertFalse(result.success)
@@ -118,12 +122,12 @@ arr.mean()
         
         # First execution: Import pandas (triggers install)
         code1 = "import pandas as pd"
-        result1 = execute_code(code1, ns_path=self.ns_path, timeout=30)
+        result1 = execute_code(code1, workspace=self.workspace, ns_path=self.ns_path, timeout=30)
         self.assertTrue(result1.success, f"Failed: {result1.error}")
         
         # Second execution: Use pandas (should work without reinstalling)
         code2 = "df = pd.DataFrame({'a': [1, 2, 3]})\ndf['a'].sum()"
-        result2 = execute_code(code2, ns_path=self.ns_path, timeout=10)
+        result2 = execute_code(code2, workspace=self.workspace, ns_path=self.ns_path, timeout=10)
         self.assertTrue(result2.success, f"Failed: {result2.error}")
         self.assertEqual(result2.output, "6")
         
@@ -187,7 +191,7 @@ df = pd.DataFrame({'col': [4, 5, 6]})
 
 arr.sum() + df['col'].sum()
 """
-        result = execute_code(code, ns_path=self.ns_path, timeout=60)
+        result = execute_code(code, workspace=self.workspace, ns_path=self.ns_path, timeout=60)
 
         self.assertTrue(result.success, f"Failed: {result.error}")
         self.assertEqual(result.output, "21")  # 6 + 15
