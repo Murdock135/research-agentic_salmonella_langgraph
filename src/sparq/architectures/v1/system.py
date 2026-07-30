@@ -1,23 +1,26 @@
-from functools import partial
-
-from pathlib import Path
 import uuid
+from functools import partial
+from pathlib import Path
+import datetime
+
+import pydantic_core
+from langgraph.graph import END, START, StateGraph
+from langgraph.types import RetryPolicy
+
+from sparq.architectures.v1.nodes.aggregator import aggregator_node
+from sparq.architectures.v1.nodes.executor import executor_node
+from sparq.architectures.v1.nodes.planner import planner_node
+from sparq.architectures.v1.nodes.router import router_func, router_node
+from sparq.architectures.v1.nodes.saver import saver_node
 
 # from sparq.settings_old import Settings
 from sparq.architectures.v1.settings import V1Settings
-from sparq.architectures.v1.nodes.planner import planner_node
-from sparq.architectures.v1.nodes.executor import executor_node
-from sparq.architectures.v1.nodes.router import router_func, router_node
-from sparq.architectures.v1.nodes.aggregator import aggregator_node
-from sparq.architectures.v1.nodes.saver import saver_node
-from sparq.schemas.state import State
-from sparq.utils.helpers import load_text, write_trace
-from sparq.tools.python_repl.namespace import cleanup_run
 from sparq.logging_config import logger, run_log_context
+from sparq.schemas.output_schemas import SystemOutput
+from sparq.schemas.state import State
+from sparq.tools.python_repl.namespace import cleanup_run
+from sparq.utils.helpers import load_text, write_trace
 
-from langgraph.graph import StateGraph, START, END
-from langgraph.types import RetryPolicy
-import pydantic_core
 
 class Agentic_system:
     def __init__(self, verbose: bool = False):
@@ -82,6 +85,7 @@ class Agentic_system:
         input_data = {"query": user_query} # This will go into the State schema expected by the graph
         with run_log_context(run_dir, run_id):
             try:
+                t0 = datetime.datetime.now()
                 async for state_values in self.graph.astream(input=input_data,
                                                     config={"configurable": {"run_id": run_id}},
                                                     stream_mode="values"):
@@ -89,6 +93,20 @@ class Agentic_system:
                     write_trace(run_dir, state_values)
             finally:
                 cleanup_run(run_id)
+                tf = datetime.datetime.now()
+                duration = (tf - t0).total_seconds()
 
-    def save_results(self):
-        pass
+        return SystemOutput(
+            run_id=run_id,
+            query=user_query,
+            models=self.settings.llm_config.model_dump(),
+            response=state_values['answer'],
+            time_started=t0,
+            time_ended=tf,
+            duration=duration, 
+            ablation_config={},
+            cost=None,
+            token_out=None,
+            sparq_judge_review=None,
+            sparq_judge_score=None,
+        )
