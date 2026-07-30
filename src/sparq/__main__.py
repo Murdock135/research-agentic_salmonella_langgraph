@@ -1,8 +1,11 @@
 
-from sparq.settings import ENVSettings
-from sparq.utils import helpers
 import argparse
 import asyncio
+
+from sparq.settings import ENVSettings
+from sparq.utils import helpers
+from sparq.schemas.output_schemas import SystemOutput
+
 
 def main():
     parser = argparse.ArgumentParser(description="Run the LangGraph application.")
@@ -20,7 +23,7 @@ def main():
 
     agentic_system = Agentic_system(verbose=True)
     user_query = helpers.get_user_query(args=args, config={"test_query": agentic_system.settings.test_query})
-    asyncio.run(agentic_system.run(user_query=user_query))
+    output = asyncio.run(agentic_system.run(user_query=user_query))
 
 if __name__ == "__main__":
     main()
