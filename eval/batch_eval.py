@@ -60,7 +60,7 @@ def load_data(file_path: str | Path) -> tuple[int, list[dict]]:
 
 async def run_bounded(semaphore: asyncio.Semaphore, agentic_system: Agentic_system, question: str):
     async with semaphore:
-        await agentic_system.run(question)
+        return await agentic_system.run(question)
 
 async def main():
     n, _questions = load_data(FILE_PATH)
@@ -98,7 +98,7 @@ async def main():
         tasks.append(run_bounded(semaphore, agentic_system, question['text']))
 
     # Get batch results (at most MAX_CONCURRENT_RUNS running at once)
-    _ = await asyncio.gather(*tasks)
+    results = await asyncio.gather(*tasks, return_exceptions=True)
 
     
 if __name__ == "__main__":
