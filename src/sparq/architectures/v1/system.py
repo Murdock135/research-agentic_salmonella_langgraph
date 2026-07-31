@@ -81,6 +81,7 @@ class Agentic_system:
             run_id = str(uuid.uuid4())
 
         run_dir = self.settings.paths.run_dir
+        assert run_dir is not None
 
         input_data = {"query": user_query} # This will go into the State schema expected by the graph
         with run_log_context(run_dir, run_id):
@@ -96,7 +97,7 @@ class Agentic_system:
                 tf = datetime.datetime.now()
                 duration = (tf - t0).total_seconds()
 
-        return SystemOutput(
+        result = SystemOutput(
             run_id=run_id,
             query=user_query,
             models=self.settings.llm_config.model_dump(),
@@ -110,3 +111,9 @@ class Agentic_system:
             sparq_judge_review=None,
             sparq_judge_score=None,
         )
+
+        # TODO: Write the result into disk
+        # write_trace(run_dir, result.model_dump_json())
+
+        return result
+

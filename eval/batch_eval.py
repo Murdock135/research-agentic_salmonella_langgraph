@@ -21,6 +21,7 @@ from pathlib import Path
 from sparq.architectures.v1.system import Agentic_system
 from sparq.settings import ENVSettings
 from sparq.utils.get_package_dir import get_project_root
+from sparq.schemas.output_schemas import SystemOutput
 
 MAX_CONCURRENT_RUNS = 3
 
@@ -98,7 +99,7 @@ async def main():
         tasks.append(run_bounded(semaphore, agentic_system, question['text']))
 
     # Get batch results (at most MAX_CONCURRENT_RUNS running at once)
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+    results: list[SystemOutput] = await asyncio.gather(*tasks, return_exceptions=True)
 
     
 if __name__ == "__main__":
