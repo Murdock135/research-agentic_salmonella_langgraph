@@ -19,7 +19,7 @@ from sparq.logging_config import logger, run_log_context
 from sparq.schemas.output_schemas import SystemOutput
 from sparq.schemas.state import State
 from sparq.tools.python_repl.namespace import cleanup_run
-from sparq.utils.helpers import load_text, write_trace
+from sparq.utils.helpers import load_text, write_json
 
 
 class Agentic_system:
@@ -91,7 +91,7 @@ class Agentic_system:
                                                     config={"configurable": {"run_id": run_id}},
                                                     stream_mode="values"):
                     logger.debug(state_values)
-                    write_trace(run_dir, state_values)
+                    write_json(run_dir, 'trace.json', state_values)
             finally:
                 cleanup_run(run_id)
                 tf = datetime.datetime.now()
@@ -112,8 +112,7 @@ class Agentic_system:
             sparq_judge_score=None,
         )
 
-        # TODO: Write the result into disk
-        # write_trace(run_dir, result.model_dump_json())
+        write_json(run_dir, 'result.json', result)
 
         return result
 

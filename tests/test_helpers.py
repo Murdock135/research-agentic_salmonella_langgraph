@@ -5,7 +5,7 @@ from pathlib import Path
 
 from sparq.schemas.output_schemas import StepResult
 from sparq.schemas.state import State
-from sparq.utils.helpers import write_trace
+from sparq.utils.helpers import write_json
 
 
 class TestWriteTrace(unittest.TestCase):
@@ -26,9 +26,10 @@ class TestWriteTrace(unittest.TestCase):
             results=[StepResult(id=1, step="load data", success=True, execution_results="done")],
         )
 
-        write_trace(self.save_dir, state)
+        file_name = 'trace.json'
+        write_json(self.save_dir, file_name, state)
 
-        trace_path = self.save_dir / "trace.json"
+        trace_path = self.save_dir / file_name
         self.assertTrue(trace_path.exists())
 
         trace = json.loads(trace_path.read_text())

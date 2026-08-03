@@ -15,17 +15,11 @@ def pydantic_encoder(obj):
     raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
 
 
-def write_trace(save_dir: Path, state) -> None:
-    """
-    Write the current state to trace.json, overwriting any previous snapshot.
-
-    Called after every node completes (see Agentic_system.run()'s astream loop with
-    stream_mode="values"), not just at the end — so trace.json reflects the most
-    recent completed node even if the run dies before reaching saver_node.
-    """
-    save_path = save_dir / 'trace.json'
+def write_json(save_dir: Path, file_name: str, object) -> None:
+    """Write object to save_dir / file_name as JSON, overwriting any previous file."""
+    save_path = save_dir / file_name
     with open(save_path, 'w') as file:
-        json.dump(state, file, indent=4, default=pydantic_encoder)
+        json.dump(object, file, indent=4, default=pydantic_encoder)
 
 
 def load_text(file_path):
@@ -42,8 +36,7 @@ def save_text(text, filepath, time_stamp=True):
     now = datetime.datetime.now()
     timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
     
-    if time_stamp:
-        file_path = file_path + timestamp
+    if time_stamp: file_path = file_path + timestamp
 
     with open(file_path, 'w') as f:
         f.write(text)
