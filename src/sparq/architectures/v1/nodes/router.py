@@ -7,7 +7,7 @@ from sparq.logging_config import logger
 from typing import cast
 from langchain_core.messages import SystemMessage, HumanMessage
 
-def router_func(router_output):
+def router_func(router_output: Router) -> bool:
     """
     Function to determine the route of the query
     """
