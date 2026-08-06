@@ -48,3 +48,50 @@ build-backend = "uv_build"
 dev = [
     "basedpyright>=1.39.9",
 ]
+[tool.basedpyright]
+typeCheckingMode = "standard"
+
+pythonVersion = "3.13"
+pythonPlatform = "All"
+
+include = ["src", "tests"]
+exclude = [
+    "**/__pycache__",
+    ".venv",
+    "build",
+    "dist",
+    "output",
+    "scratch",
+    "notebooks",
+]
+
+# Third-party packages sometimes expose incomplete typing.
+reportMissingTypeStubs = false
+
+# Useful, but excessively noisy during normal development.
+reportUnknownArgumentType = false
+reportUnknownLambdaType = false
+reportUnknownMemberType = false
+reportUnknownVariableType = false
+
+# These are mostly code-style or strict initialization opinions.
+reportUnannotatedClassAttribute = false
+reportImplicitOverride = false
+reportUnusedCallResult = false
+reportPrivateUsage = false
+
+# Keep important correctness checks enabled.
+reportArgumentType = "error"
+reportAssignmentType = "error"
+reportAttributeAccessIssue = "error"
+reportCallIssue = "error"
+reportIncompatibleMethodOverride = "error"
+reportOptionalCall = "error"
+reportOptionalIterable = "error"
+reportOptionalMemberAccess = "error"
+reportOptionalOperand = "error"
+reportPossiblyUnboundVariable = "error"
+reportReturnType = "error"
+
+# Do not make ordinary warnings fail CI for now.
+failOnWarnings = false
