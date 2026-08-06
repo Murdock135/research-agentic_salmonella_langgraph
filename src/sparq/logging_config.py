@@ -8,7 +8,7 @@ import sys
 from contextlib import contextmanager
 from pathlib import Path
 
-from loguru import logger
+from loguru import logger as logger
 
 logger.remove()  # drop loguru's default handler so we control format/sinks explicitly
 
@@ -55,13 +55,3 @@ def run_log_context(run_dir: Path, run_id: str):
             yield
         finally:
             logger.remove(sink_id)
-
-
-def get_logger(name: str):
-    """
-    Back-compat shim for existing `get_logger(__name__)` call sites.
-
-    loguru has a single global `logger`; the calling module/file/line is captured
-    automatically per call site, so `name` doesn't need to be bound to anything.
-    """
-    return logger

@@ -3,10 +3,6 @@ import linecache
 import types
 from typing import Tuple
 
-from sparq.logging_config import get_logger
-
-logger = get_logger(__name__)
-
 
 def rewrite_last_expr(tree: ast.AST) -> Tuple[ast.AST, bool]:
     """
