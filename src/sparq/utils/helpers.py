@@ -175,7 +175,12 @@ def get_data_repoIDs(path_to_manifest_file):
     return repo_ids
 
 
-def render_records_table(records: List[Dict], columns: Optional[List[str]] = None, title: Optional[str] = None) -> None:
+def render_records_table(
+    records: List[Dict],
+    columns: Optional[List[str]] = None,
+    title: Optional[str] = None,
+    no_wrap_columns: Optional[List[str]] = None,
+) -> None:
     """Render a list of mapping records (list[dict]) to a table using rich and print it.
 
     This function prints the table to stdout and returns None. If a caller
@@ -202,9 +207,10 @@ def render_records_table(records: List[Dict], columns: Optional[List[str]] = Non
     else:
         cols = columns
 
+    no_wrap_columns = no_wrap_columns or []
     table = Table(title=title, show_header=True, header_style="bold magenta")
     for c in cols:
-        table.add_column(str(c))
+        table.add_column(str(c), no_wrap=c in no_wrap_columns)
 
     for r in records:
         row = [str(r.get(c, "")) for c in cols]

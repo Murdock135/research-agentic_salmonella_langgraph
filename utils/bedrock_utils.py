@@ -5,11 +5,11 @@ import logging
 import os
 import boto3
 from typing import List, Dict
-from utils.helpers import render_records_table
+from sparq.utils.helpers import render_records_table
 
 from botocore.exceptions import ClientError
 
-from config.load_env import load_env_vars
+from sparq.settings import ENVSettings
 
 
 logging.basicConfig(level=logging.INFO)
@@ -44,7 +44,7 @@ def main():
     """
 
     # load AWS profile from environment variable AWS_PROFILE
-    load_env_vars()
+    _ = ENVSettings()
     profile = os.getenv("AWS_PROFILE", "default")
     session = boto3.Session(profile_name=profile)
 
@@ -54,10 +54,27 @@ def main():
     )
 
     fm_models = list_foundation_models(bedrock_client)
+    table_models = [
+        {**model, "status": model.get("modelLifecycle", {}).get("status", "")}
+        for model in fm_models
+    ]
 
     print("Available Bedrock Foundation Models:")
     # Use the renderer to print the table to stdout
-    render_records_table(fm_models, columns=["modelName", "modelId"], title="Foundation Models")
+    render_records_table(
+        table_models,
+        columns=[
+            "modelName",
+            "modelId",
+            "inferenceTypesSupported",
+            "inputModalities",
+            "outputModalities",
+            "providerName",
+            "status",
+        ],
+        title="Foundation Models",
+        no_wrap_columns=["modelId"],
+    )
 
     # for model in fm_models:
     #     print(f"Model: {model['modelName']}")
@@ -69,5 +86,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
