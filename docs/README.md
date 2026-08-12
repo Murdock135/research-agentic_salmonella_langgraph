@@ -13,6 +13,7 @@
 
 ## Architecture — how existing subsystems work
 
+- [SPARQ architecture figure](figures/sparq_agentic_system.md) — rendered preview, [editable SVG](figures/sparq_agentic_system.svg), [vector PDF](figures/sparq_agentic_system.pdf), and [high-resolution PNG](figures/sparq_agentic_system.png)
 - [repl_architecture.md](repl_architecture.md) — how the executor invokes Python and how the REPL subsystem works end-to-end
 - [repl.md](repl.md) — REPL subsystem quirks and non-obvious constraints
 - [concurrency.md](concurrency.md) — notes on running multiple `sparq` invocations concurrently

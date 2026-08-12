@@ -8,9 +8,7 @@ uv run eval/batch_eval.py : Run SPARQ on all questions
 uv run eval/batch_eval.py k : Run SPARQ on first k questions
 
 TODO:
-1. Return SystemOutput by SPARQ. How do we collect results from concurrent SPARQ runs?
-    - run_bounded() -> ?
-    - in main(), asyncio.run() -> ?
+    1. Run batch eval n times: Introduce CLI arg
 """
 
 import asyncio
