@@ -1,4 +1,6 @@
 from datetime import datetime
+from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -39,6 +41,58 @@ class StepResult(BaseModel):
     files_generated: list[str] = Field(default_factory=list, description="Files generated during execution")
     misc: str = Field("", description="Anything else you want to note, e.g. caveats, observations, justifications, rationales or next steps")
 
+
+RunStatus = Literal["pending", "running", "completed", "failed", "cancelled", "interrupted"]
+BatchStatus = Literal["running", "completed", "completed_with_errors", "failed", "interrupted"]
+
+
+class EvaluationContext(BaseModel):
+    """Links one SPARQ run to its source batch-evaluation question."""
+
+    batch_id: str
+    question_id: int
+    iteration: int
+
+
+class BatchRunEntry(BaseModel):
+    """Lifecycle and artifact location for one question iteration in a batch."""
+
+    question_id: int
+    question_index: int
+    iteration: int
+    run_id: str
+    result_path: Path
+    status: RunStatus = "pending"
+    time_started: datetime | None = None
+    time_ended: datetime | None = None
+    error_type: str | None = None
+    error_message: str | None = None
+
+
+class BatchEvalOutput(BaseModel):
+    """Manifest for a complete batch-evaluation experiment."""
+
+    batch_id: str
+    status: BatchStatus = "running"
+    time_started: datetime
+    time_ended: datetime | None = None
+    duration: float | None = None
+    dataset_path: Path
+    dataset_hash: str
+    question_filter: dict
+    requested_question_count: int
+    selected_question_ids: list[int]
+    iterations: int
+    max_concurrent_runs: int
+    code_version: dict
+    configuration: dict
+    planned_runs: int
+    completed_runs: int = 0
+    failed_runs: int = 0
+    cancelled_runs: int = 0
+    interrupted_runs: int = 0
+    runs: list[BatchRunEntry]
+
 class SystemOutput(BaseModel):
     """Record of a single SPARQ run against an eval dataset question."""
 
@@ -53,5 +107,6 @@ class SystemOutput(BaseModel):
     time_started: datetime = Field(..., description="When the run started, from the eval script")
     time_ended: datetime = Field(..., description="When the run ended, from the eval script")
     duration: float = Field(..., description="Run duration in seconds, from the eval script")
+    evaluation_context: EvaluationContext | None = Field(None, description="Batch-evaluation linkage for this run")
     sparq_judge_score: dict | None = Field(None, description="Per-criterion scores from the SPARQ judge")
     sparq_judge_review: str | None = Field(None, description="Free-text review from the SPARQ judge")

@@ -5,6 +5,7 @@
 ## Design docs — for specific improvements
 
 - [artifact_organizer.md](artifact_organizer.md) — post-executor node that organizes output files (improvement #12)
+- [experiment_output_schema.md](experiment_output_schema.md) — single-run and batch-evaluation output schemas, result layout, linkage, and status lifecycle
 - [multi_turn_support.md](multi_turn_support.md) — multi-turn chat support for `State` and the v1 graph
 - [parallel_execution.md](parallel_execution.md) — step dependency tracking and concurrent execution of plan steps (improvement #1)
 - [subtask_parallelism.md](subtask_parallelism.md) — sub-task parallelism within a worker via `async_subagent_tool` (improvement #16)

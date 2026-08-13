@@ -16,7 +16,7 @@ from sparq.architectures.v1.nodes.saver import saver_node
 # from sparq.settings_old import Settings
 from sparq.architectures.v1.settings import V1Settings
 from sparq.logging_config import logger, run_log_context
-from sparq.schemas.output_schemas import SystemOutput
+from sparq.schemas.output_schemas import EvaluationContext, SystemOutput
 from sparq.schemas.state import State
 from sparq.tools.python_repl.namespace import cleanup_run
 from sparq.utils.helpers import load_text, write_json
@@ -72,7 +72,13 @@ class Agentic_system:
         
         self.graph = graph_init.compile()
 
-    async def run(self, user_query: str, run_id: str | None = None):
+    async def run(
+        self,
+        user_query: str,
+        run_id: str | None = None,
+        difficulty: int = 0,
+        evaluation_context: EvaluationContext | None = None,
+    ):
         self._get_node_definitions()
         self._build_graph()
 
@@ -100,6 +106,7 @@ class Agentic_system:
         result = SystemOutput(
             run_id=run_id,
             query=user_query,
+            difficulty=difficulty,
             models=self.settings.llm_config.model_dump(),
             response=state_values['answer'],
             time_started=t0,
@@ -108,6 +115,7 @@ class Agentic_system:
             ablation_config={},
             cost=None,
             token_out=None,
+            evaluation_context=evaluation_context,
             sparq_judge_review=None,
             sparq_judge_score=None,
         )
@@ -115,4 +123,3 @@ class Agentic_system:
         write_json(run_dir, 'result.json', result)
 
         return result
-
